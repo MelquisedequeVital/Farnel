@@ -40,14 +40,14 @@
 
 			<!-- BANNER / CARROSSEL DE PRATOS EM DESTAQUE -->
 			<section th:unless="${#lists.isEmpty(destaques)}" class="w-full px-margin py-space-lg bg-surface">
-				<div class="relative w-full overflow-hidden bg-surface-container-high" style="aspect-ratio: 21 / 9;">
+				<div class="relative w-full overflow-hidden bg-surface-container-high" style="aspect-ratio: 3 / 1;">
 					<div class="relative w-full h-full flex transition-transform duration-700 ease-out" id="hero-slider">
 						<div th:each="d : ${destaques}" class="min-w-full h-full relative flex-shrink-0">
 							<img th:if="${d.imagem != null}" th:src="@{${d.imagem}}" th:alt="${d.nome}" class="w-full h-full object-cover">
-							<div class="absolute inset-0 bg-gradient-to-t from-on-background/85 via-on-background/30 to-transparent flex flex-col justify-end p-space-2xl">
+							<div class="absolute inset-0 bg-gradient-to-t from-on-background/85 via-on-background/30 to-transparent flex flex-col justify-end p-space-xl">
 								<div class="max-w-3xl">
 									<span th:text="'Destaque da Semana • ' + ${d.restaurante.nomeFantasia}" class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed block mb-2">Destaque da Semana</span>
-									<h2 th:text="${d.nome}" class="font-display-lg text-display-lg text-surface tracking-tight mb-space-sm font-normal">Nome do prato</h2>
+									<h2 th:text="${d.nome}" class="font-display-md text-display-md text-surface tracking-tight mb-space-xs font-normal">Nome do prato</h2>
 									<p th:text="${d.descricao}" class="font-body-md text-body-md text-surface-variant mb-space-lg max-w-xl font-light">Descrição</p>
 									<div class="flex items-center gap-6">
 										<a href="#cardapio" class="inline-block bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg uppercase tracking-wider px-8 py-3 transition-colors">Ver Cardápio</a>
