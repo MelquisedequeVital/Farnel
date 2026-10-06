@@ -1,0 +1,18 @@
+html, body {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	overscroll-behavior: none;
+}
+
+button:not(:disabled),
+[type="submit"]:not(:disabled),
+label:has(> input[type="radio"]) {
+	cursor: pointer;
+}
+
+::-webkit-scrollbar {
+	display: none;
+}

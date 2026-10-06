@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Meu Plano')}"></head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+
+	<header th:replace="~{fragments/layout :: header('plano')}"></header>
+
+	<main class="w-full pt-20 bg-background min-h-screen">
+
+		<!-- CABEÇALHO EDITORIAL -->
+		<section class="w-full px-margin py-space-xl bg-surface">
+			<div class="grid grid-cols-12 gap-gutter items-end">
+				<div class="col-span-8">
+					<span class="font-label-md text-label-md uppercase tracking-widest text-secondary block mb-space-xs">Assinatura Semanal de Terroir</span>
+					<h1 class="font-display-md text-display-md text-on-surface font-normal tracking-tight">Finalizar Assinatura Recorrente</h1>
+				</div>
+				<div class="col-span-4 text-right">
+					<p class="font-body-md text-body-md text-on-surface-variant">Entrega semanal climatizada e automática.</p>
+					<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline block mt-1">Cancele ou pause a qualquer momento sem taxas</span>
+				</div>
+			</div>
+		</section>
+
+		<div th:if="${erro != null}" class="px-margin pb-space-md">
+			<div class="bg-error-container text-on-error-container px-space-md py-3 font-body-sm text-body-sm flex items-center gap-2">
+				<span class="material-symbols-outlined text-[18px]">error</span>
+				<span th:text="${erro}">Erro</span>
+			</div>
+		</div>
+
+		<section class="w-full px-margin pb-space-3xl">
+			<div class="grid grid-cols-12 gap-gutter items-start">
+
+				<!-- COLUNA ESQUERDA: PRATOS E EXTRATO -->
+				<div class="col-span-7 pr-gutter-compact">
+					<div class="flex items-baseline justify-between pb-space-md mb-space-lg">
+						<div>
+							<span class="font-label-sm text-label-sm uppercase tracking-widest text-outline block mb-1">Passo 01 / Revisão do Cardápio</span>
+							<h2 class="font-headline-md text-headline-md text-on-surface font-normal">Pratos Selecionados na sua Cesta Semanal</h2>
+						</div>
+						<div th:unless="${#lists.isEmpty(itens)}" class="flex items-center gap-6">
+							<span class="font-label-md text-label-md uppercase tracking-widest text-on-surface-variant whitespace-nowrap">
+								<span th:text="${totalPorcoes}" class="text-primary font-bold">0</span>
+								<span th:text="${totalPorcoes == 1} ? 'porção' : 'porções'">porções</span>
+							</span>
+							<div class="flex items-center gap-3">
+								<button type="button" id="scroll-prev" aria-label="Prato anterior" class="w-10 h-10 bg-surface-container hover:bg-surface-container-high transition-colors flex items-center justify-center text-on-surface"><span class="material-symbols-outlined text-[20px]">arrow_back</span></button>
+								<button type="button" id="scroll-next" aria-label="Próximo prato" class="w-10 h-10 bg-surface-container hover:bg-surface-container-high transition-colors flex items-center justify-center text-on-surface"><span class="material-symbols-outlined text-[20px]">arrow_forward</span></button>
+							</div>
+						</div>
+					</div>
+
+					<!-- Carrinho vazio -->
+					<div th:if="${#lists.isEmpty(itens)}" class="bg-surface-container-lowest py-space-3xl text-center">
+						<span class="material-symbols-outlined text-outline text-[40px]">shopping_basket</span>
+						<p class="font-headline-sm text-headline-sm text-on-surface font-normal mt-space-sm">Sua cesta está vazia</p>
+						<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Escolha seus pratos no catálogo para montar o plano semanal.</p>
+						<a th:href="@{/catalogo}" class="inline-block mt-space-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg uppercase tracking-wider px-8 py-3 transition-colors">Ver Catálogo</a>
+					</div>
+
+					<!-- Carrossel de pratos do carrinho -->
+					<div th:unless="${#lists.isEmpty(itens)}" id="dish-track" class="flex gap-6 overflow-x-auto pb-space-lg scroll-smooth snap-x snap-mandatory" style="scrollbar-width: none;">
+						<article th:each="item, it : ${itens}" class="w-[280px] shrink-0 snap-start flex flex-col bg-surface-container-lowest cursor-pointer">
+							<div class="relative w-full h-[220px] overflow-hidden bg-surface-container flex items-center justify-center">
+								<img th:if="${item.prato.imagem != null}" th:src="@{${item.prato.imagem}}" th:alt="${item.prato.nome}" class="w-full h-full object-cover">
+								<span th:unless="${item.prato.imagem != null}" class="material-symbols-outlined text-outline text-[48px]">restaurant</span>
+								<span th:text="${#numbers.formatInteger(it.count, 2)} + ' / ' + ${item.prato.restaurante.nomeFantasia}"
+									class="absolute top-2 left-2 bg-surface text-on-surface font-label-sm text-label-sm uppercase px-2 py-0.5 tracking-widest">01</span>
+							</div>
+							<div class="p-space-md flex flex-col flex-1 justify-between">
+								<div>
+									<h3 th:text="${item.prato.nome}" th:title="${item.prato.nome}" class="font-headline-sm text-headline-sm text-on-surface font-normal line-clamp-1">Nome</h3>
+									<p th:text="${item.prato.descricao}" class="font-body-sm text-body-sm text-on-surface-variant mt-1 line-clamp-2">Descrição</p>
+									<span th:text="'R$ ' + ${#numbers.formatDecimal(item.prato.preco, 1, 'POINT', 2, 'COMMA')} + ' / un'" class="font-body-sm text-body-sm text-outline block mt-1">R$ 0,00 / un</span>
+								</div>
+								<div class="pt-space-md mt-space-md flex items-center justify-between">
+									<div class="flex items-center bg-surface-container">
+										<form th:action="@{/carrinho/{id}/decrementar(id=${item.prato.id})}" method="post">
+											<button type="submit" aria-label="Diminuir quantidade" class="w-8 h-8 flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors">
+												<span class="material-symbols-outlined text-[18px]">remove</span>
+											</button>
+										</form>
+										<span th:text="${item.quantidade}" class="w-8 text-center font-label-md text-label-md text-on-surface">1</span>
+										<form th:action="@{/carrinho/{id}/incrementar(id=${item.prato.id})}" method="post">
+											<button type="submit" aria-label="Aumentar quantidade" class="w-8 h-8 flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors">
+												<span class="material-symbols-outlined text-[18px]">add</span>
+											</button>
+										</form>
+									</div>
+									<form th:action="@{/carrinho/{id}/remover(id=${item.prato.id})}" method="post">
+										<button type="submit" class="font-label-sm text-label-sm uppercase text-secondary hover:text-on-surface tracking-wider underline underline-offset-4 transition-colors">Remover</button>
+									</form>
+								</div>
+							</div>
+						</article>
+					</div>
+
+					<a th:unless="${#lists.isEmpty(itens)}" th:href="@{/catalogo}"
+						class="inline-flex items-center gap-1.5 font-label-md text-label-md uppercase tracking-wider text-primary hover:text-primary-container font-semibold transition-colors">
+						<span class="material-symbols-outlined text-[18px]">add</span> Adicionar mais pratos
+					</a>
+
+					<!-- Extrato -->
+					<div th:unless="${#lists.isEmpty(itens)}" class="mt-space-xl bg-surface-container-low p-space-xl">
+						<div class="flex items-center justify-between pb-space-sm">
+							<span class="font-label-md text-label-md uppercase tracking-widest text-on-surface-variant">Extrato de Recorrência Semanal</span>
+						</div>
+						<div class="space-y-4 pt-space-md">
+							<div th:each="item : ${itens}" class="flex justify-between items-baseline">
+								<div class="flex items-baseline gap-2">
+									<span th:text="${item.quantidade} + '× ' + ${item.prato.nome}" class="font-body-md text-body-md text-on-surface">1× Prato</span>
+									<span th:text="'(R$ ' + ${#numbers.formatDecimal(item.prato.preco, 1, 'POINT', 2, 'COMMA')} + ' / un)'" class="font-label-sm text-label-sm text-outline">(R$ 0,00 / un)</span>
+								</div>
+								<span th:text="'R$ ' + ${#numbers.formatDecimal(item.subtotal, 1, 'POINT', 2, 'COMMA')}" class="font-body-md text-body-md text-on-surface font-medium whitespace-nowrap">R$ 0,00</span>
+							</div>
+							<div class="flex justify-between items-baseline">
+								<div class="flex items-baseline gap-2">
+									<span class="font-body-md text-body-md text-on-surface">Taxa de Logística Térmica Climatizada</span>
+									<span class="font-label-sm text-label-sm uppercase text-primary font-semibold tracking-wider">Cortesia Assinante Farnel</span>
+								</div>
+								<span class="font-body-md text-body-md text-primary font-medium">R$ 0,00</span>
+							</div>
+							<div class="flex justify-between items-baseline">
+								<div>
+									<span class="font-body-md text-body-md text-on-surface">Embalagens Biodegradáveis de Polpa Vegetal</span>
+									<p class="font-label-sm text-label-sm text-outline">Próprias para forno, banho-maria ou congelamento</p>
+								</div>
+								<span class="font-body-md text-body-md text-on-surface">Incluso</span>
+							</div>
+							<div class="mt-space-md flex justify-between items-baseline bg-surface p-space-md">
+								<div>
+									<span class="font-label-lg text-label-lg uppercase tracking-wider text-on-surface font-semibold block">Total Semanal Recorrente</span>
+									<span th:text="${totalPorcoes} + (${totalPorcoes == 1} ? ' refeição artesanal' : ' refeições artesanais')" class="font-body-sm text-body-sm text-on-surface-variant">0 refeições</span>
+								</div>
+								<div class="flex items-baseline gap-1 justify-end">
+									<span th:text="'R$ ' + ${#numbers.formatDecimal(total, 1, 'POINT', 2, 'COMMA')}" class="font-headline-lg text-headline-lg text-on-surface font-normal whitespace-nowrap">R$ 0,00</span>
+									<span class="font-label-md text-label-md text-on-surface-variant uppercase">/ semana</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="mt-space-lg p-space-md bg-surface flex items-start gap-4">
+						<span class="material-symbols-outlined text-primary text-[24px] shrink-0">eco</span>
+						<div>
+							<span class="font-label-md text-label-md uppercase tracking-widest text-primary font-semibold block">Compromisso com Pequenos Produtores</span>
+							<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Ingredientes frescos colhidos até 36h antes do preparo nas cozinhas parceiras do Cinturão Verde.</p>
+						</div>
+					</div>
+				</div>
+
+				<!-- COLUNA DIREITA: ENTREGA E PAGAMENTO -->
+				<div class="col-span-5 pl-gutter-compact bg-surface-container-low p-space-xl">
+					<form th:action="@{/checkout/finalizar}" method="post" class="space-y-space-xl">
+						<div>
+							<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary block mb-1">Passo 02 / Logística &amp; Pagamento</span>
+							<h2 class="font-headline-md text-headline-md text-on-surface font-normal">Preferências de Recebimento</h2>
+						</div>
+
+						<fieldset>
+							<div class="flex justify-between items-baseline mb-space-sm">
+								<legend class="font-label-md text-label-md uppercase tracking-wider text-on-surface font-semibold">Dia de Entrega Preferencial</legend>
+								<span class="font-label-sm text-label-sm text-outline">Janela única: 08h às 12h</span>
+							</div>
+							<div class="grid grid-cols-5 gap-2">
+								<label th:each="dia, it : ${diasEntrega}"
+									class="h-12 flex flex-col items-center justify-center cursor-pointer transition-colors bg-surface text-on-surface hover:bg-surface-container-high has-[:checked]:bg-primary has-[:checked]:text-on-primary">
+									<input type="radio" name="dataEntrega" th:value="${dia.data}" th:checked="${it.first}" class="sr-only" required>
+									<span th:text="${dia.sigla}" class="font-label-md text-label-md uppercase tracking-wider font-semibold">Seg</span>
+									<span th:text="${dia.diaMes}" class="font-label-sm text-[9px] opacity-80">01/Jan</span>
+								</label>
+							</div>
+						</fieldset>
+
+						<div>
+							<div class="flex justify-between items-baseline mb-space-sm">
+								<label for="observacoes" class="font-label-md text-label-md uppercase tracking-wider text-on-surface font-semibold">Restrições &amp; Observações Culinárias</label>
+								<span class="font-label-sm text-label-sm text-outline">Opcional</span>
+							</div>
+							<textarea id="observacoes" name="observacoes" rows="3" maxlength="500" th:text="${observacoes}"
+								placeholder="Ex: Sem cebola, enviar molho à parte, alergia a pimenta do reino ou noz-moscada..."
+								class="w-full bg-surface p-space-md font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest transition-colors resize-none"></textarea>
+							<span class="font-label-sm text-label-sm text-outline block mt-1">Nossa brigada de cozinha lê cada nota individualmente antes da mise en place.</span>
+						</div>
+
+						<!-- Pagamento PIX meramente ilustrativo: não há integração com nenhum gateway -->
+						<div class="bg-surface p-space-md">
+							<div class="flex items-center justify-between pb-space-sm border-b border-surface-container-highest">
+								<div class="flex items-center gap-2">
+									<span class="material-symbols-outlined text-secondary text-[24px]">account_balance_wallet</span>
+									<span class="font-label-md text-label-md uppercase tracking-widest text-on-surface font-semibold">Pagamento via PIX</span>
+								</div>
+								<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-semibold">Demonstração</span>
+							</div>
+							<p class="font-body-sm text-body-sm text-on-surface-variant mt-space-md">
+								Esta é uma compra fictícia. A chave e o código abaixo são apenas ilustrativos e nenhum pagamento será processado.
+							</p>
+							<div class="mt-space-md bg-surface-container-low p-space-md flex items-center justify-between gap-4">
+								<div>
+									<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline block">Chave PIX (exemplo)</span>
+									<span class="font-mono text-body-md text-on-surface font-semibold">00.000.000/0000-00</span>
+								</div>
+							</div>
+							<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline block mt-space-md mb-1">Código PIX copia e cola (exemplo)</span>
+							<div class="flex items-stretch gap-2">
+								<input id="pix-codigo" type="text" readonly value="CODIGO-PIX-FICTICIO-DEMONSTRACAO-FARNEL"
+									class="flex-1 min-w-0 bg-surface-container-low px-3 py-2 font-mono text-body-sm text-on-surface-variant focus:outline-none">
+								<button type="button" id="copiar-pix" class="bg-on-surface text-surface font-label-md text-label-md uppercase tracking-wider px-4 hover:bg-inverse-surface transition-colors">Copiar</button>
+							</div>
+						</div>
+
+						<div class="pt-space-sm space-y-space-md">
+							<button type="submit" th:disabled="${#lists.isEmpty(itens)}"
+								class="w-full h-14 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg uppercase tracking-widest font-semibold flex items-center justify-center gap-3 transition-colors disabled:bg-surface-dim disabled:text-outline disabled:cursor-not-allowed">
+								<span>Confirmar Assinatura Farnel</span>
+								<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+							</button>
+							<div class="text-center pt-space-xs">
+								<span class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant block font-medium">Garantia de Frescor Farnel • Pausa Simplificada com 1 Clique</span>
+								<p class="font-body-sm text-body-sm text-outline mt-1 max-w-sm mx-auto">Você pode pular semanas, alterar pratos do próximo ciclo ou encerrar a assinatura diretamente na aba Minhas Entregas até 48h antes da data agendada.</p>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+	<script th:src="@{/js/checkout.js}"></script>
+</body>
+</html>

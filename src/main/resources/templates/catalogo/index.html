@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Catálogo')}"></head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+
+	<header th:replace="~{fragments/layout :: header('catalogo')}"></header>
+
+	<main class="w-full pt-20 bg-background min-h-screen">
+		<div class="flex flex-col w-full">
+
+			<!-- SUB-HEADER EDITORIAL & FILTROS -->
+			<section class="w-full px-margin pt-space-xl pb-space-lg bg-surface">
+				<div class="flex items-baseline justify-between mb-space-md">
+					<div class="flex items-baseline gap-4">
+						<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-semibold">Cardápio da Semana</span>
+						<h1 class="font-headline-md text-headline-md text-on-surface font-normal tracking-tight">Menu Semanal da Estação — Curadoria Gastronômica</h1>
+					</div>
+					<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Colheita &amp; Cocção</span>
+				</div>
+
+				<div class="flex items-center justify-between pt-space-sm">
+					<nav class="flex items-center gap-10">
+						<a th:href="@{/catalogo(busca=${busca})}"
+							th:classappend="${filtroSelecionado == null} ? 'text-primary after:bg-primary' : 'text-on-surface-variant hover:text-on-surface after:bg-transparent hover:after:bg-surface-variant'"
+							class="font-label-lg text-label-lg uppercase tracking-wider relative py-2 transition-colors after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5">Todos</a>
+						<a th:each="f : ${filtros}"
+							th:href="@{/catalogo(filtro=${f.slug}, busca=${busca})}"
+							th:text="${f.rotulo}"
+							th:classappend="${f == filtroSelecionado} ? 'text-primary after:bg-primary' : 'text-on-surface-variant hover:text-on-surface after:bg-transparent hover:after:bg-surface-variant'"
+							class="font-label-lg text-label-lg uppercase tracking-wider relative py-2 transition-colors after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5">Filtro</a>
+					</nav>
+					<form th:action="@{/catalogo}" method="get" class="relative flex items-center w-72">
+						<input type="hidden" name="filtro" th:if="${filtroSelecionado != null}" th:value="${filtroSelecionado.slug}">
+						<span class="material-symbols-outlined text-outline text-[20px] mr-2">tune</span>
+						<input type="text" name="busca" th:value="${busca}" placeholder="Filtrar por nome, ingrediente..."
+							class="w-full bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none py-1">
+					</form>
+				</div>
+			</section>
+
+			<!-- BANNER / CARROSSEL DE PRATOS EM DESTAQUE -->
+			<section th:unless="${#lists.isEmpty(destaques)}" class="w-full px-margin py-space-lg bg-surface">
+				<div class="relative w-full overflow-hidden bg-surface-container-high" style="aspect-ratio: 21 / 9;">
+					<div class="relative w-full h-full flex transition-transform duration-700 ease-out" id="hero-slider">
+						<div th:each="d : ${destaques}" class="min-w-full h-full relative flex-shrink-0">
+							<img th:if="${d.imagem != null}" th:src="@{${d.imagem}}" th:alt="${d.nome}" class="w-full h-full object-cover">
+							<div class="absolute inset-0 bg-gradient-to-t from-on-background/85 via-on-background/30 to-transparent flex flex-col justify-end p-space-2xl">
+								<div class="max-w-3xl">
+									<span th:text="'Destaque da Semana • ' + ${d.restaurante.nomeFantasia}" class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed block mb-2">Destaque da Semana</span>
+									<h2 th:text="${d.nome}" class="font-display-lg text-display-lg text-surface tracking-tight mb-space-sm font-normal">Nome do prato</h2>
+									<p th:text="${d.descricao}" class="font-body-md text-body-md text-surface-variant mb-space-lg max-w-xl font-light">Descrição</p>
+									<div class="flex items-center gap-6">
+										<a href="#cardapio" class="inline-block bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg uppercase tracking-wider px-8 py-3 transition-colors">Ver Cardápio</a>
+										<span th:text="'R$ ' + ${#numbers.formatDecimal(d.preco, 1, 'POINT', 2, 'COMMA')}" class="font-body-md text-body-md text-surface font-medium">R$ 0,00</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div th:if="${#lists.size(destaques) > 1}" class="absolute top-space-lg right-space-lg flex items-center gap-4 bg-on-background/60 backdrop-blur-sm px-4 py-2 text-surface">
+						<span th:text="'01 / ' + ${#numbers.formatInteger(#lists.size(destaques), 2)}" class="font-label-sm text-label-sm uppercase tracking-widest text-surface-variant" id="carousel-indicator">01 / 01</span>
+						<div class="flex items-center gap-3">
+							<button type="button" id="prev-slide" aria-label="Slide anterior" class="w-8 h-8 flex items-center justify-center text-surface hover:text-primary-fixed transition-colors"><span class="material-symbols-outlined text-[20px]">west</span></button>
+							<button type="button" id="next-slide" aria-label="Próximo slide" class="w-8 h-8 flex items-center justify-center text-surface hover:text-primary-fixed transition-colors"><span class="material-symbols-outlined text-[20px]">east</span></button>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- FAIXA DE FILTROS POR ALÉRGENO -->
+			<section class="w-full px-margin pt-space-xl pb-space-lg bg-surface">
+				<div class="flex items-baseline justify-between mb-space-md">
+					<div class="flex items-baseline gap-3">
+						<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-semibold">Linhas Especiais</span>
+						<h3 class="font-headline-sm text-headline-sm text-on-surface font-normal">Caminhos Nutricionais Sem Alérgenos</h3>
+					</div>
+					<div class="flex items-center gap-4">
+						<button type="button" id="cat-scroll-left" aria-label="Voltar categorias" class="w-8 h-8 flex items-center justify-center text-outline hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">chevron_left</span></button>
+						<button type="button" id="cat-scroll-right" aria-label="Avançar categorias" class="w-8 h-8 flex items-center justify-center text-outline hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">chevron_right</span></button>
+					</div>
+				</div>
+				<div class="flex gap-6 overflow-x-auto scroll-smooth pb-2" id="category-track" style="scrollbar-width: none;">
+					<a th:each="f : ${filtros}" th:href="@{/catalogo(filtro=${f.slug})}" class="group flex-shrink-0 w-80 cursor-pointer block">
+						<div class="w-full h-44 overflow-hidden bg-surface-container-high mb-3">
+							<img th:src="${f.imagem}" th:alt="${f.rotulo}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+						</div>
+						<div class="flex items-baseline justify-between">
+							<span th:text="${f.rotulo}" class="font-headline-sm text-headline-sm text-on-surface font-normal group-hover:text-primary transition-colors">Filtro</span>
+							<span th:text="${contagemPorFiltro.get(f)} + (${contagemPorFiltro.get(f) == 1} ? ' Prato' : ' Pratos')" class="font-label-sm text-label-sm uppercase tracking-wider text-outline">0 Pratos</span>
+						</div>
+						<p th:text="${f.descricao}" class="font-body-sm text-body-sm text-on-surface-variant font-light mt-1">Descrição</p>
+					</a>
+				</div>
+			</section>
+
+			<!-- GRID EDITORIAL DE PRATOS -->
+			<section id="cardapio" class="w-full px-margin pt-space-2xl pb-space-3xl bg-surface">
+				<div class="flex items-end justify-between pb-space-sm mb-space-xl">
+					<div>
+						<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary block font-semibold mb-1">Cardápio Ativo</span>
+						<h2 class="font-headline-lg text-headline-lg text-on-surface font-normal">Pratos Selecionados da Semana</h2>
+					</div>
+					<span class="font-body-sm text-body-sm text-outline"
+						th:text="'Mostrando ' + ${#lists.size(pratos)} + (${#lists.size(pratos) == 1} ? ' criação' : ' criações')">Mostrando 0 criações</span>
+				</div>
+
+				<div th:if="${#lists.isEmpty(pratos)}" class="py-space-3xl text-center">
+					<span class="material-symbols-outlined text-outline text-[40px]">restaurant</span>
+					<p class="font-headline-sm text-headline-sm text-on-surface font-normal mt-space-sm">Nenhum prato encontrado</p>
+					<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Tente outro filtro ou termo de busca.</p>
+					<a th:href="@{/catalogo}" class="inline-block mt-space-md font-label-md text-label-md uppercase tracking-wider text-primary font-semibold">Ver todos os pratos</a>
+				</div>
+
+				<div th:unless="${#lists.isEmpty(pratos)}" class="grid grid-cols-4 gap-x-8 gap-y-14 w-full">
+					<article th:each="prato : ${pratos}" th:id="'prato-' + ${prato.id}" class="flex flex-col group scroll-mt-28 cursor-pointer">
+						<div class="w-full aspect-[4/3] overflow-hidden bg-surface-container-high mb-space-sm flex items-center justify-center">
+							<img th:if="${prato.imagem != null}" th:src="@{${prato.imagem}}" th:alt="${prato.nome}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+							<span th:unless="${prato.imagem != null}" class="material-symbols-outlined text-outline text-[48px]">restaurant</span>
+						</div>
+						<div class="flex flex-col flex-1">
+							<h4 th:text="${prato.nome}" class="font-headline-sm text-headline-sm text-on-surface font-normal leading-snug mb-1 group-hover:text-primary transition-colors">Nome do prato</h4>
+							<span th:text="'R$ ' + ${#numbers.formatDecimal(prato.preco, 1, 'POINT', 2, 'COMMA')}" class="font-body-sm text-body-sm text-outline">R$ 0,00</span>
+							<span th:if="${!#strings.isEmpty(prato.alergenos)}" th:text="'Contém: ' + ${prato.alergenos}" class="font-body-sm text-body-sm text-on-surface-variant">Contém: alérgenos</span>
+							<form th:action="@{/carrinho/adicionar}" method="post" class="mt-space-sm self-start">
+								<input type="hidden" name="pratoId" th:value="${prato.id}">
+								<button type="submit"
+									class="font-label-md text-label-md uppercase tracking-wider text-primary hover:text-primary-container font-semibold transition-colors flex items-center gap-1.5">
+									<span>+ Adicionar ao Plano Semanal</span>
+								</button>
+							</form>
+						</div>
+					</article>
+				</div>
+
+				<div th:replace="~{fragments/layout :: toast}"></div>
+			</section>
+
+		</div>
+	</main>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+	<script th:src="@{/js/catalogo.js}"></script>
+</body>
+</html>
