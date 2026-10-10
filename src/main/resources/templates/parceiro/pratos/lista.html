@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pratos & Alérgenos')}"></head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+
+	<aside th:replace="~{fragments/parceiro :: sidebar('pratos')}"></aside>
+	<header th:replace="~{fragments/parceiro :: topbar('Pratos & Alérgenos')}"></header>
+
+	<main class="ml-72 pt-20 min-h-screen">
+		<div class="px-12 py-10">
+
+			<header class="pb-8 mb-8 border-b border-surface-container-highest flex items-end justify-between gap-8">
+				<div>
+					<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-semibold">Cardápio Recorrente</span>
+					<h1 class="font-display-md text-display-md text-on-surface tracking-tight font-normal leading-tight mt-1">Pratos &amp; Alérgenos</h1>
+					<p class="font-body-md text-body-md text-on-surface-variant mt-2">Gerencie as receitas oferecidas aos assinantes e mantenha os alérgenos atualizados.</p>
+				</div>
+				<a th:href="@{/parceiro/pratos/novo(restaurante=${restauranteSelecionado})}"
+					class="shrink-0 h-12 px-6 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg uppercase tracking-wider flex items-center gap-2 transition-colors">
+					<span class="material-symbols-outlined text-[20px]">add</span> Novo Prato
+				</a>
+			</header>
+
+			<form th:action="@{/parceiro/pratos}" method="get" class="flex items-center gap-4 mb-8">
+				<label for="restaurante" class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Restaurante</label>
+				<select id="restaurante" name="restaurante" onchange="this.form.submit()"
+					class="h-10 px-3 bg-surface border border-outline-variant font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary">
+					<option value="">Todos os restaurantes</option>
+					<option th:each="r : ${restaurantes}" th:value="${r.id}" th:text="${r.nomeFantasia}"
+						th:selected="${r.id == restauranteSelecionado}">Restaurante</option>
+				</select>
+				<span th:text="${#lists.size(pratos)} + (${#lists.size(pratos) == 1} ? ' prato' : ' pratos')" class="font-body-sm text-body-sm text-outline">0 pratos</span>
+			</form>
+
+			<div th:if="${#lists.isEmpty(pratos)}" class="py-space-3xl text-center bg-surface-container-low">
+				<span class="material-symbols-outlined text-outline text-[40px]">restaurant_menu</span>
+				<p class="font-headline-sm text-headline-sm text-on-surface font-normal mt-space-sm">Nenhum prato cadastrado</p>
+				<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Cadastre o primeiro prato deste restaurante.</p>
+			</div>
+
+			<table th:unless="${#lists.isEmpty(pratos)}" class="w-full border-t border-surface-container-highest">
+				<thead>
+					<tr class="text-left font-label-sm text-label-sm uppercase tracking-wider text-outline">
+						<th class="py-3 pr-4 font-medium" colspan="2">Prato</th>
+						<th class="py-3 pr-4 font-medium">Restaurante</th>
+						<th class="py-3 pr-4 font-medium">Alérgenos</th>
+						<th class="py-3 pr-4 font-medium text-right">Preço</th>
+						<th class="py-3 font-medium"><span class="sr-only">Ações</span></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="prato : ${pratos}" class="border-t border-surface-container-highest align-middle">
+						<td class="py-3 pr-4 w-20">
+							<div class="w-16 h-12 bg-surface-container-high overflow-hidden flex items-center justify-center">
+								<img th:if="${prato.imagem != null}" th:src="@{${prato.imagem}}" th:alt="${prato.nome}" loading="lazy" class="w-full h-full object-cover">
+								<span th:unless="${prato.imagem != null}" class="material-symbols-outlined text-outline text-[20px]">restaurant</span>
+							</div>
+						</td>
+						<td class="py-3 pr-4">
+							<span th:text="${prato.nome}" class="font-headline-sm text-headline-sm text-on-surface font-normal">Nome</span>
+							<span th:if="${prato.destaque}" class="ml-2 font-label-sm text-label-sm uppercase tracking-wider text-secondary font-semibold">Destaque</span>
+						</td>
+						<td th:text="${prato.restaurante.nomeFantasia}" class="py-3 pr-4 font-body-sm text-body-sm text-on-surface-variant">Restaurante</td>
+						<td th:text="${prato.alergenos != null} ? ${prato.alergenos} : '—'" class="py-3 pr-4 font-body-sm text-body-sm text-on-surface-variant">—</td>
+						<td th:text="'R$ ' + ${#numbers.formatDecimal(prato.preco, 1, 'POINT', 2, 'COMMA')}" class="py-3 pr-4 font-body-sm text-body-sm text-on-surface text-right whitespace-nowrap">R$ 0,00</td>
+						<td class="py-3 text-right">
+							<a th:href="@{/parceiro/pratos/{id}/editar(id=${prato.id})}"
+								class="font-label-md text-label-md uppercase tracking-wider text-primary hover:text-primary-container font-semibold">Editar</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</main>
+
+	<div th:replace="~{fragments/layout :: toast}"></div>
+</body>
+</html>

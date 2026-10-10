@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<!-- Fragments compartilhados entre as páginas: head, header e footer -->
+
+<head th:fragment="head(titulo)">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title th:text="${titulo} + ' • Farnel'">Farnel</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+	<link rel="stylesheet" th:href="@{/css/farnel.css}">
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script th:src="@{/js/tailwind-config.js}"></script>
+</head>
+
+<body>
+
+	<header th:fragment="header(ativo)" class="fixed top-0 left-0 w-full z-50 bg-surface/90 backdrop-blur-md border-b border-surface-container-highest">
+		<div class="h-20 w-full px-margin flex items-center justify-between">
+			<div class="flex items-center gap-12">
+				<a class="flex items-baseline gap-2" th:href="@{/catalogo}">
+					<span class="font-headline-lg text-headline-lg tracking-tight text-primary font-normal">Farnel</span>
+					<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary">Cozinha Artesanal</span>
+				</a>
+				<nav class="flex items-center gap-8 h-20">
+					<a th:href="@{/catalogo}"
+						th:classappend="${ativo == 'catalogo'} ? 'text-primary font-semibold border-b border-primary' : 'text-on-surface-variant'"
+						class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1">Catálogo</a>
+					<a href="#"
+						th:classappend="${ativo == 'entregas'} ? 'text-primary font-semibold border-b border-primary' : 'text-on-surface-variant'"
+						class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1">Minhas Entregas</a>
+					<a th:href="@{/checkout}"
+						th:classappend="${ativo == 'plano'} ? 'text-primary font-semibold border-b border-primary' : 'text-on-surface-variant'"
+						class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1 flex items-center gap-2">
+						Meu Plano
+						<span th:if="${totalItensCarrinho != null and totalItensCarrinho > 0}" th:text="${totalItensCarrinho}"
+							class="min-w-5 h-5 px-1.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm flex items-center justify-center">0</span>
+					</a>
+					<div class="h-6 w-px bg-surface-container-highest"></div>
+					<a th:href="@{/parceiro}" class="font-label-lg text-label-lg uppercase tracking-wider text-secondary hover:text-on-surface transition-colors py-1 flex items-center gap-1.5">
+						<span class="w-1.5 h-1.5 bg-secondary-container"></span>Portal do Parceiro (Cozinha)
+					</a>
+				</nav>
+			</div>
+			<div class="flex items-center gap-8">
+				<form th:action="@{/catalogo}" method="get" class="relative flex items-center border-b border-surface-container-highest focus-within:border-primary transition-colors py-1">
+					<span class="material-symbols-outlined text-outline text-[20px] mr-2">search</span>
+					<input type="text" name="busca" th:value="${busca}" placeholder="Buscar pratos, ingredientes..."
+						class="bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none w-56">
+				</form>
+				<div class="flex items-center gap-3 pl-4 border-l border-surface-container-highest">
+					<div class="text-right">
+						<span class="block font-label-md text-label-md uppercase tracking-wider text-on-surface font-semibold">Visitante</span>
+						<a href="#" class="block font-label-sm text-label-sm uppercase text-outline hover:text-secondary transition-colors">Entrar</a>
+					</div>
+					<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+						<span class="material-symbols-outlined text-on-primary text-[20px]">person</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</header>
+
+	<!-- Aviso flutuante para mensagens de feedback (flash attribute "mensagem") -->
+	<div th:fragment="toast" th:if="${mensagem != null}" id="toast"
+		class="fixed bottom-8 right-margin bg-on-surface text-surface px-6 py-3 text-body-sm font-body-sm flex items-center gap-3 transition-opacity duration-300 z-50">
+		<span class="material-symbols-outlined text-primary-fixed text-[18px]">check_circle</span>
+		<span th:text="${mensagem}">Mensagem</span>
+		<script>
+			setTimeout(() => {
+				const toast = document.getElementById('toast');
+				toast.classList.add('opacity-0');
+				setTimeout(() => toast.remove(), 300);
+			}, 3000);
+		</script>
+	</div>
+
+	<footer th:fragment="footer" class="w-full bg-surface-container-low border-t border-surface-container-highest py-space-2xl">
+		<div class="w-full px-margin">
+			<div class="grid grid-cols-12 gap-gutter pb-space-xl border-b border-surface-container-highest">
+				<div class="col-span-4">
+					<span class="font-headline-md text-headline-md text-primary font-normal block mb-space-sm">Farnel</span>
+					<p class="font-body-sm text-body-sm text-on-surface-variant max-w-sm">Alimentação consciente e culinária de terroir entregue semanalmente. Menus assinados por produtores e cozinhas parceiras.</p>
+				</div>
+				<div class="col-span-3 col-start-7">
+					<span class="font-label-md text-label-md uppercase tracking-widest text-on-surface block mb-space-md font-semibold">Assinatura &amp; Origem</span>
+					<ul class="space-y-2">
+						<li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface cursor-pointer">Ciclo de Safra</li>
+						<li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface cursor-pointer">Guia de Produtores</li>
+						<li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface cursor-pointer">Política de Compostagem</li>
+					</ul>
+				</div>
+				<div class="col-span-3">
+					<span class="font-label-md text-label-md uppercase tracking-widest text-on-surface block mb-space-md font-semibold">Cozinhas Parceiras</span>
+					<ul class="space-y-2">
+						<li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface cursor-pointer">Critérios de Homologação</li>
+						<li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface cursor-pointer">Painel de Produção Diária</li>
+						<li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface cursor-pointer">Suporte Técnico de Cozinha</li>
+					</ul>
+				</div>
+			</div>
+			<div class="pt-space-md flex items-center justify-between font-label-sm text-label-sm uppercase tracking-wider text-outline">
+				<span th:text="'© ' + ${#dates.year(#dates.createNow())} + ' Farnel Gastronomia de Origem Ltda.'">© Farnel Gastronomia de Origem Ltda.</span>
+				<span>Editorial Monograph UI • São Paulo, Brasil</span>
+			</div>
+		</div>
+	</footer>
+
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pedido Confirmado')}"></head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+
+	<header th:replace="~{fragments/layout :: header('plano')}"></header>
+
+	<main class="w-full pt-20 bg-background min-h-screen">
+		<section class="w-full px-margin py-space-2xl bg-surface">
+			<div class="max-w-3xl mx-auto">
+
+				<div class="text-center">
+					<span class="material-symbols-outlined text-primary text-[56px]">check_circle</span>
+					<span class="font-label-md text-label-md uppercase tracking-widest text-secondary block mt-space-sm">Compra fictícia • Pedido <span th:text="${pedido.codigo}">FRN-000000</span></span>
+					<h1 class="font-display-md text-display-md text-on-surface font-normal tracking-tight mt-space-xs">Assinatura confirmada!</h1>
+					<p class="font-body-lg text-body-lg text-on-surface-variant mt-space-sm">
+						Sua cesta será entregue na <strong th:text="${pedido.diaEntrega.descricao}" class="text-on-surface font-semibold">terça-feira</strong>, entre 08h e 12h.
+					</p>
+				</div>
+
+				<div class="mt-space-lg bg-tertiary-fixed text-on-tertiary-fixed-variant px-space-md py-3 font-body-sm text-body-sm flex items-start gap-2">
+					<span class="material-symbols-outlined text-[18px] mt-0.5">info</span>
+					<span>Esta é uma demonstração: nenhum pagamento foi processado e nenhum pedido foi registrado.</span>
+				</div>
+
+				<div class="mt-space-xl bg-surface-container-low p-space-xl">
+					<span class="font-label-md text-label-md uppercase tracking-widest text-on-surface-variant">Resumo do Pedido</span>
+					<div class="space-y-4 pt-space-md">
+						<div th:each="item : ${pedido.itens}" class="flex justify-between items-baseline">
+							<span th:text="${item.quantidade} + '× ' + ${item.nome}" class="font-body-md text-body-md text-on-surface">1× Prato</span>
+							<span th:text="'R$ ' + ${#numbers.formatDecimal(item.subtotal, 1, 'POINT', 2, 'COMMA')}" class="font-body-md text-body-md text-on-surface font-medium whitespace-nowrap">R$ 0,00</span>
+						</div>
+						<div class="flex justify-between items-baseline">
+							<span class="font-body-md text-body-md text-on-surface">Taxa de Logística Térmica Climatizada</span>
+							<span class="font-body-md text-body-md text-primary font-medium">R$ 0,00</span>
+						</div>
+						<div th:if="${pedido.observacoes != null}" class="pt-space-sm">
+							<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline block">Observações</span>
+							<p th:text="${pedido.observacoes}" class="font-body-sm text-body-sm text-on-surface-variant mt-1 whitespace-pre-line">Observações</p>
+						</div>
+						<div class="mt-space-md flex justify-between items-baseline bg-surface p-space-md">
+							<div>
+								<span class="font-label-lg text-label-lg uppercase tracking-wider text-on-surface font-semibold block">Total Semanal</span>
+								<span th:text="${pedido.totalItens} + (${pedido.totalItens == 1} ? ' refeição artesanal' : ' refeições artesanais')" class="font-body-sm text-body-sm text-on-surface-variant">0 refeições</span>
+							</div>
+							<span th:text="'R$ ' + ${#numbers.formatDecimal(pedido.total, 1, 'POINT', 2, 'COMMA')}" class="font-headline-lg text-headline-lg text-on-surface font-normal whitespace-nowrap">R$ 0,00</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="mt-space-xl text-center">
+					<a th:href="@{/catalogo}" class="inline-block bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg uppercase tracking-wider px-8 py-3 transition-colors">Voltar ao Catálogo</a>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
