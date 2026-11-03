@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Detalhes da Marmita')}"></head>
+<body class="min-h-screen flex flex-col bg-slate-50 font-sans antialiased text-slate-800">
+
+	<header th:replace="~{fragments/layout :: header('marmitas')}"></header>
+
+	<main class="flex-1 max-w-5xl w-full mx-auto px-6 pt-28 pb-16">
+		<!-- Top Action Row: Title and Cancel Order Button -->
+		<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-8" data-purpose="page-title-row">
+			<div>
+				<a th:href="@{/minhas-marmitas}" class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-emerald-700 transition mb-1">
+					<span class="material-symbols-outlined text-sm">arrow_back</span>
+					Voltar para Minhas Marmitas
+				</a>
+				<h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">Detalhes da Marmita</h1>
+			</div>
+
+			<!-- Action Cancel Button aligned to top right as shown in wireframe -->
+			<div>
+				<form th:action="@{/minhas-marmitas/{id}/cancelar(id=${assinatura.id})}" method="post"
+					onsubmit="return confirm('Deseja realmente cancelar esta marmita recorrente?');">
+					<button class="px-4 py-2 text-sm font-semibold text-rose-600 border border-rose-300 rounded-lg hover:bg-rose-50 hover:border-rose-400 transition shadow-2xs focus:outline-none focus:ring-2 focus:ring-rose-400 cursor-pointer" type="submit">
+						Cancelar Pedido
+					</button>
+				</form>
+			</div>
+		</div>
+
+		<!-- Meal Details Card (2-column layout) -->
+		<section class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200/90 shadow-xs mb-8" data-purpose="meal-info-section">
+			<div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+				<!-- Left: Meal Image Container -->
+				<div class="md:col-span-6 w-full">
+					<div class="relative w-full aspect-4/3 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shadow-inner group">
+						<img th:if="${assinatura.prato.imagem != null}" th:src="@{${assinatura.prato.imagem}}" th:alt="${assinatura.prato.nome}"
+							class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+						<div th:unless="${assinatura.prato.imagem != null}" class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
+							<span class="material-symbols-outlined text-6xl">lunch_dining</span>
+						</div>
+						<span class="absolute bottom-3 left-3 bg-white/90 backdrop-blur-xs text-xs font-semibold px-2.5 py-1 rounded-md text-slate-700 shadow-xs">
+							450g individual
+						</span>
+					</div>
+				</div>
+
+				<!-- Right: Meal Metadata -->
+				<div class="md:col-span-6 flex flex-col justify-start space-y-4">
+					<div>
+						<span class="text-xs uppercase tracking-wider font-semibold text-slate-400">Item Selecionado</span>
+						<h2 class="text-2xl font-bold text-slate-900 leading-snug mt-0.5" th:text="${assinatura.prato.nome}">
+							Marmita Fit Frango &amp; Legumes Grelhados
+						</h2>
+					</div>
+
+					<div>
+						<span class="text-xs uppercase tracking-wider font-semibold text-slate-400">Restaurante</span>
+						<p class="text-base font-semibold text-emerald-700 flex items-center gap-1.5 mt-0.5">
+							<span class="material-symbols-outlined text-lg">storefront</span>
+							<span th:text="${assinatura.prato.restaurante.nomeFantasia}">Cozinha da Terra Nutrição</span>
+						</p>
+					</div>
+
+					<div class="pt-1">
+						<span class="text-xs uppercase tracking-wider font-semibold text-slate-400">Preço</span>
+						<div class="text-3xl font-extrabold text-slate-900 mt-0.5"
+							th:text="'R$ ' + ${#numbers.formatDecimal(assinatura.valor, 1, 'POINT', 2, 'COMMA')}">
+							R$ 28,90
+						</div>
+					</div>
+
+					<div class="pt-2">
+						<span class="text-xs uppercase tracking-wider font-semibold text-slate-400 block mb-2">Filtros &amp; Categorias</span>
+						<div class="flex flex-wrap gap-2" data-purpose="meal-tags">
+							<span th:if="${assinatura.prato.alergenos == null or !assinatura.prato.alergenos.contains('Glúten')}"
+								class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+								Sem Glúten
+							</span>
+							<span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
+								Low Carb
+							</span>
+							<span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+								Rico em Proteínas
+							</span>
+							<span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+								Orgânico
+							</span>
+							<span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+								Sem Conservantes
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Recurrence & Delivery Configuration Section (RF-CON-02) Form -->
+		<form th:action="@{/minhas-marmitas/{id}/salvar(id=${assinatura.id})}" method="post" id="form-recorrencia">
+			<input type="hidden" name="diaSemana" id="diaSemanaInput" th:value="${assinatura.diasSemana}">
+
+			<section class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200/90 shadow-xs mb-10" data-purpose="recurrence-settings">
+				<!-- Day of the Week Header -->
+				<div class="mb-5">
+					<div class="flex flex-wrap items-center justify-between gap-2">
+						<label class="block text-base font-bold text-slate-900 tracking-tight">
+							Dia da semana a ser entregue
+						</label>
+						<span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-orange-50 text-orange-700 border border-orange-200 transition-all duration-200" id="selected-day-badge">
+							<span class="w-1.5 h-1.5 rounded-full bg-orange-600"></span>
+							<span>Entrega agendada para: <strong class="font-bold" id="selected-day-name" th:text="${assinatura.diasSemana}">Terça-feira</strong></span>
+						</span>
+					</div>
+					<p class="text-sm text-slate-500 mt-1">Escolha o dia para receber sua entrega recorrente semanalmente.</p>
+				</div>
+
+				<!-- Weekday Selector Buttons (Interativo) -->
+				<div aria-label="Dia da semana da entrega" class="flex flex-wrap items-center gap-2 sm:gap-3 mb-8" data-purpose="weekday-selector" id="weekday-selector" role="radiogroup">
+					<!-- Segunda-feira -->
+					<button class="weekday-btn w-12 h-12 rounded-xl text-sm transition-all duration-150 cursor-pointer active:scale-95"
+						data-day="Seg" data-day-name="Segunda-feira" type="button"
+						th:classappend="${assinatura.diaSemanaAbreviado == 'Seg'} ? 'font-bold text-white bg-orange-600 border border-orange-600 shadow-md shadow-orange-500/20 ring-2 ring-orange-500 ring-offset-2' : 'font-medium text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300'">
+						Seg
+					</button>
+
+					<!-- Terça-feira -->
+					<button class="weekday-btn w-12 h-12 rounded-xl text-sm transition-all duration-150 cursor-pointer active:scale-95"
+						data-day="Ter" data-day-name="Terça-feira" type="button"
+						th:classappend="${assinatura.diaSemanaAbreviado == 'Ter'} ? 'font-bold text-white bg-orange-600 border border-orange-600 shadow-md shadow-orange-500/20 ring-2 ring-orange-500 ring-offset-2' : 'font-medium text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300'">
+						Ter
+					</button>
+
+					<!-- Quarta-feira -->
+					<button class="weekday-btn w-12 h-12 rounded-xl text-sm transition-all duration-150 cursor-pointer active:scale-95"
+						data-day="Quar" data-day-name="Quarta-feira" type="button"
+						th:classappend="${assinatura.diaSemanaAbreviado == 'Quar'} ? 'font-bold text-white bg-orange-600 border border-orange-600 shadow-md shadow-orange-500/20 ring-2 ring-orange-500 ring-offset-2' : 'font-medium text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300'">
+						Quar
+					</button>
+
+					<!-- Quinta-feira -->
+					<button class="weekday-btn w-12 h-12 rounded-xl text-sm transition-all duration-150 cursor-pointer active:scale-95"
+						data-day="Qui" data-day-name="Quinta-feira" type="button"
+						th:classappend="${assinatura.diaSemanaAbreviado == 'Qui'} ? 'font-bold text-white bg-orange-600 border border-orange-600 shadow-md shadow-orange-500/20 ring-2 ring-orange-500 ring-offset-2' : 'font-medium text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300'">
+						Qui
+					</button>
+
+					<!-- Sexta-feira -->
+					<button class="weekday-btn w-12 h-12 rounded-xl text-sm transition-all duration-150 cursor-pointer active:scale-95"
+						data-day="Sex" data-day-name="Sexta-feira" type="button"
+						th:classappend="${assinatura.diaSemanaAbreviado == 'Sex'} ? 'font-bold text-white bg-orange-600 border border-orange-600 shadow-md shadow-orange-500/20 ring-2 ring-orange-500 ring-offset-2' : 'font-medium text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300'">
+						Sex
+					</button>
+
+					<!-- Sábado -->
+					<button class="weekday-btn w-12 h-12 rounded-xl text-sm transition-all duration-150 cursor-pointer active:scale-95"
+						data-day="Sab" data-day-name="Sábado" type="button"
+						th:classappend="${assinatura.diaSemanaAbreviado == 'Sab'} ? 'font-bold text-white bg-orange-600 border border-orange-600 shadow-md shadow-orange-500/20 ring-2 ring-orange-500 ring-offset-2' : 'font-medium text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300'">
+						Sab
+					</button>
+
+					<!-- Domingo -->
+					<button class="weekday-btn w-12 h-12 rounded-xl text-sm transition-all duration-150 cursor-pointer active:scale-95"
+						data-day="Dom" data-day-name="Domingo" type="button"
+						th:classappend="${assinatura.diaSemanaAbreviado == 'Dom'} ? 'font-bold text-white bg-orange-600 border border-orange-600 shadow-md shadow-orange-500/20 ring-2 ring-orange-500 ring-offset-2' : 'font-medium text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300'">
+						Dom
+					</button>
+				</div>
+
+				<!-- Time of Day Configuration -->
+				<div class="pt-4 border-t border-slate-100" data-purpose="time-delivery-group">
+					<label class="block text-base font-bold text-slate-900 tracking-tight mb-2" for="delivery-time-input">
+						Horário no dia
+					</label>
+					<div class="inline-flex items-center">
+						<input class="w-36 h-11 text-center font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg shadow-2xs focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 text-base"
+							id="delivery-time-input" name="horarioEntrega" type="time" th:value="${assinatura.horarioFormatado}"/>
+					</div>
+				</div>
+			</section>
+
+			<!-- Bottom Actions Row -->
+			<div class="flex items-center justify-end space-x-3 pt-2 pb-12" data-purpose="bottom-page-actions">
+				<a th:href="@{/minhas-marmitas}"
+					class="px-6 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition shadow-2xs focus:outline-none focus:ring-2 focus:ring-slate-300 cursor-pointer">
+					Cancelar
+				</a>
+				<button type="submit"
+					class="px-7 py-2.5 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm hover:shadow transition transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 cursor-pointer">
+					Salvar
+				</button>
+			</div>
+		</form>
+	</main>
+
+	<div th:replace="~{fragments/layout :: toast}"></div>
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+	<!-- JavaScript para interatividade dos dias da semana -->
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			const weekdayButtons = document.querySelectorAll('.weekday-btn');
+			const dayNameElement = document.getElementById('selected-day-name');
+			const diaSemanaInput = document.getElementById('diaSemanaInput');
+
+			const activeClasses = [
+				'font-bold',
+				'text-white',
+				'bg-orange-600',
+				'border-orange-600',
+				'shadow-md',
+				'shadow-orange-500/20',
+				'ring-2',
+				'ring-orange-500',
+				'ring-offset-2'
+			];
+
+			const inactiveClasses = [
+				'font-medium',
+				'text-slate-600',
+				'bg-slate-50',
+				'border-slate-200',
+				'hover:bg-slate-100',
+				'hover:border-slate-300'
+			];
+
+			function selectWeekday(targetButton) {
+				weekdayButtons.forEach(btn => {
+					btn.classList.remove(...activeClasses);
+					btn.classList.add(...inactiveClasses);
+				});
+
+				targetButton.classList.remove(...inactiveClasses);
+				targetButton.classList.add(...activeClasses);
+
+				const fullDayName = targetButton.getAttribute('data-day-name');
+				if (dayNameElement && fullDayName) {
+					dayNameElement.textContent = fullDayName;
+				}
+				if (diaSemanaInput && fullDayName) {
+					diaSemanaInput.value = fullDayName;
+				}
+			}
+
+			weekdayButtons.forEach(button => {
+				button.addEventListener('click', function () {
+					selectWeekday(this);
+				});
+			});
+		});
+	</script>
+</body>
+</html>

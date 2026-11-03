@@ -1,6 +1,8 @@
 package br.edu.ifpb.gps.farnel.model;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +38,9 @@ public class Assinatura {
 	@Column(nullable = false)
 	private String diasSemana;
 
+	@Column
+	private LocalTime horarioEntrega;
+
 	@Column(nullable = false, precision = 10, scale = 2)
 	private BigDecimal valor;
 
@@ -49,5 +54,22 @@ public class Assinatura {
 
 	@OneToMany(mappedBy = "assinatura")
 	private List<Pedido> pedidos = new ArrayList<>();
+
+	public String getHorarioFormatado() {
+		return horarioEntrega != null ? horarioEntrega.format(DateTimeFormatter.ofPattern("HH:mm")) : "12:00";
+	}
+
+	public String getDiaSemanaAbreviado() {
+		if (diasSemana == null) return "Ter";
+		String d = diasSemana.toLowerCase();
+		if (d.contains("seg")) return "Seg";
+		if (d.contains("ter")) return "Ter";
+		if (d.contains("qua")) return "Quar";
+		if (d.contains("qui")) return "Qui";
+		if (d.contains("sex")) return "Sex";
+		if (d.contains("sáb") || d.contains("sab")) return "Sab";
+		if (d.contains("dom")) return "Dom";
+		return diasSemana;
+	}
 
 }

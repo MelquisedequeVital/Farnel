@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Minhas Marmitas')}"></head>
+<body class="min-h-screen flex flex-col bg-slate-50 font-sans antialiased text-slate-800">
+
+	<header th:replace="~{fragments/layout :: header('marmitas')}"></header>
+
+	<main class="flex-1 max-w-5xl w-full mx-auto px-6 pt-28 pb-16">
+		<div class="flex flex-col w-full">
+			<div class="flex flex-col gap-8">
+				<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+					<div>
+						<span class="text-xs font-bold uppercase tracking-wider text-slate-400">Assinaturas Ativas</span>
+						<h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 mt-1">Minhas Marmitas</h1>
+					</div>
+
+					<!-- Search & Filter Wrapper with popover -->
+					<div class="relative flex items-center gap-3 w-full md:w-auto">
+						<div class="relative flex-1 md:w-80">
+							<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">search</span>
+							<input class="w-full pl-10 pr-4 py-2.5 bg-white text-sm text-slate-800 rounded-xl shadow-xs border border-slate-200 focus:border-slate-300 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 transition"
+								id="searchInput" placeholder="Buscar por prato ou ingrediente..." type="text"/>
+						</div>
+						<button aria-expanded="false" aria-label="Filtrar marmitas"
+							class="p-2.5 bg-emerald-700 text-white rounded-xl shadow-xs transition flex items-center justify-center cursor-pointer hover:bg-emerald-800 ring-2 ring-emerald-700/20 relative"
+							id="filterToggleBtn" type="button">
+							<span class="material-symbols-outlined text-xl">tune</span>
+							<span class="hidden absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-orange-600 text-white text-[10px] font-bold items-center justify-center border-2 border-white shadow-xs"
+								id="filterBadgeIndicator">0</span>
+						</button>
+
+						<!-- Filter Popover Dropdown -->
+						<div aria-label="Menu de filtros de marmitas"
+							class="hidden absolute right-0 top-full mt-2 w-full sm:w-[410px] bg-white rounded-2xl shadow-xl border border-slate-100 p-5 z-20 transition-all duration-200"
+							id="filterPopover" role="dialog">
+							<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+								<div class="flex items-center gap-2">
+									<span class="material-symbols-outlined text-emerald-700 text-lg">filter_alt</span>
+									<span class="text-sm font-bold text-slate-900">Filtrar por Preferência</span>
+								</div>
+								<span class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full" id="activeFilterCount">Todos</span>
+							</div>
+
+							<!-- Selected Badges -->
+							<div class="py-3.5 border-b border-slate-100 bg-slate-50/70 -mx-5 px-5 transition-all duration-300" id="selectedFiltersSection">
+								<div class="flex items-center justify-between mb-2">
+									<div class="flex items-center gap-1.5 text-xs uppercase font-bold tracking-wider text-slate-500">
+										<span class="material-symbols-outlined text-xs text-emerald-700">check_circle</span>
+										<span>Filtros Selecionados</span>
+									</div>
+									<span class="text-[11px] text-slate-400 font-medium" id="selectedHintText">Nenhum filtro ativo</span>
+								</div>
+								<div class="flex flex-wrap gap-1.5 min-h-[34px] items-center" id="activeBadgesContainer">
+									<p class="text-xs text-slate-400 italic py-1" id="emptySelectedMsg">Clique nas tags abaixo para filtrar os pratos.</p>
+								</div>
+							</div>
+
+							<!-- Available Badges -->
+							<div class="pt-4 pb-3">
+								<div class="flex items-center justify-between mb-2.5">
+									<p class="text-xs text-slate-400 uppercase font-semibold tracking-wider">Tags Alimentares Disponíveis</p>
+									<span class="text-[11px] text-slate-400">Toque para adicionar</span>
+								</div>
+								<div class="flex flex-wrap gap-2 min-h-[74px]" id="availableBadgesContainer">
+									<button class="filter-badge px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/70 transition cursor-pointer flex items-center gap-1 active:scale-95 duration-150" data-category="emerald" data-tag="Low Carb" type="button">
+										<span>Low Carb</span>
+										<span class="material-symbols-outlined text-[13px] opacity-60">add</span>
+									</button>
+									<button class="filter-badge px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200/70 transition cursor-pointer flex items-center gap-1 active:scale-95 duration-150" data-category="orange" data-tag="Sem Glúten" type="button">
+										<span>Sem Glúten</span>
+										<span class="material-symbols-outlined text-[13px] opacity-60">add</span>
+									</button>
+									<button class="filter-badge px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200/70 transition cursor-pointer flex items-center gap-1 active:scale-95 duration-150" data-category="amber" data-tag="Sem Lactose" type="button">
+										<span>Sem Lactose</span>
+										<span class="material-symbols-outlined text-[13px] opacity-60">add</span>
+									</button>
+									<button class="filter-badge px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200/70 transition cursor-pointer flex items-center gap-1 active:scale-95 duration-150" data-category="orange" data-tag="Orgânico" type="button">
+										<span>Orgânico</span>
+										<span class="material-symbols-outlined text-[13px] opacity-60">add</span>
+									</button>
+									<button class="filter-badge px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200/70 transition cursor-pointer flex items-center gap-1 active:scale-95 duration-150" data-category="amber" data-tag="Rico em Proteínas" type="button">
+										<span>Rico em Proteínas</span>
+										<span class="material-symbols-outlined text-[13px] opacity-60">add</span>
+									</button>
+									<button class="filter-badge px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/70 transition cursor-pointer flex items-center gap-1 active:scale-95 duration-150" data-category="emerald" data-tag="Ômega 3" type="button">
+										<span>Ômega 3</span>
+										<span class="material-symbols-outlined text-[13px] opacity-60">add</span>
+									</button>
+									<button class="filter-badge px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200/70 transition cursor-pointer flex items-center gap-1 active:scale-95 duration-150" data-category="amber" data-tag="Artesanal" type="button">
+										<span>Artesanal</span>
+										<span class="material-symbols-outlined text-[13px] opacity-60">add</span>
+									</button>
+									<button class="filter-badge px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/70 transition cursor-pointer flex items-center gap-1 active:scale-95 duration-150" data-category="emerald" data-tag="Sem Conservantes" type="button">
+										<span>Sem Conservantes</span>
+										<span class="material-symbols-outlined text-[13px] opacity-60">add</span>
+									</button>
+								</div>
+							</div>
+
+							<div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+								<button class="text-xs font-semibold text-slate-500 hover:text-rose-600 transition flex items-center gap-1 py-1.5 px-2 rounded-lg hover:bg-slate-50 cursor-pointer" id="clearFiltersBtn" type="button">
+									<span class="material-symbols-outlined text-sm">restart_alt</span>
+									Limpar filtros
+								</button>
+								<button class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer" id="applyFiltersBtn" type="button">
+									<span>Aplicar</span>
+									<span class="material-symbols-outlined text-sm">check</span>
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Empty State -->
+				<div th:if="${#lists.isEmpty(marmitas)}" class="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-xs">
+					<span class="material-symbols-outlined text-slate-300 text-6xl">lunch_dining</span>
+					<h3 class="text-xl font-bold text-slate-800 mt-4">Nenhuma marmita ativa no seu plano</h3>
+					<p class="text-slate-500 text-sm mt-1 max-w-md mx-auto">Você ainda não possui entregas de marmitas recorrentes agendadas. Escolha seus pratos favoritos no catálogo e programe seus dias!</p>
+					<a th:href="@{/catalogo}" class="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-sm rounded-xl transition">
+						<span class="material-symbols-outlined text-lg">restaurant_menu</span>
+						Explorar Catálogo
+					</a>
+				</div>
+
+				<!-- Grid com os Cards das Marmitas Ativas -->
+				<div th:unless="${#lists.isEmpty(marmitas)}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="marmitasGrid">
+					<article th:each="marmita : ${marmitas}"
+						class="group bg-white rounded-xl shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between border border-slate-200/80"
+						th:data-card="${marmita.id}">
+						<div>
+							<div class="relative h-48 w-full overflow-hidden bg-slate-100">
+								<img th:if="${marmita.prato.imagem != null}" th:src="@{${marmita.prato.imagem}}" th:alt="${marmita.prato.nome}"
+									class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+								<div th:unless="${marmita.prato.imagem != null}" class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
+									<span class="material-symbols-outlined text-5xl">lunch_dining</span>
+								</div>
+								<div class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-xs flex items-center gap-1.5">
+									<span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+									<span class="text-xs font-semibold text-slate-700"
+										th:text="'Toda ' + ${marmita.diasSemana} + ' • ' + ${marmita.horarioFormatado}">Toda Terça • 12:30</span>
+								</div>
+							</div>
+							<div class="p-5 flex flex-col gap-3">
+								<div>
+									<p class="text-xs font-medium text-slate-400 uppercase tracking-wide" th:text="${marmita.prato.restaurante.nomeFantasia}">Restaurante</p>
+									<h2 class="text-lg font-bold text-slate-900 group-hover:text-emerald-700 transition" th:text="${marmita.prato.nome}">Nome do Prato</h2>
+								</div>
+								<div class="flex flex-wrap gap-1.5 pt-1">
+									<span th:if="${marmita.prato.alergenos == null or !marmita.prato.alergenos.contains('Glúten')}"
+										class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">Sem Glúten</span>
+									<span th:if="${marmita.prato.alergenos == null or !marmita.prato.alergenos.contains('Leite')}"
+										class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700">Sem Lactose</span>
+									<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-700">Artesanal</span>
+									<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">Sem Conservantes</span>
+								</div>
+							</div>
+						</div>
+						<div class="px-5 pb-5 pt-2 flex items-center justify-between border-t border-slate-100">
+							<a th:href="@{/minhas-marmitas/{id}(id=${marmita.id})}"
+								class="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-emerald-700 transition py-1.5 px-2.5 rounded-lg hover:bg-slate-100 cursor-pointer">
+								<span class="material-symbols-outlined text-base">edit</span>
+								<span>Editar</span>
+							</a>
+							<form th:action="@{/minhas-marmitas/{id}/cancelar(id=${marmita.id})}" method="post"
+								onsubmit="return confirm('Deseja realmente cancelar esta marmita recorrente?');">
+								<button aria-label="Remover marmita" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer" type="submit">
+									<span class="material-symbols-outlined text-lg">delete</span>
+								</button>
+							</form>
+						</div>
+					</article>
+				</div>
+
+				<!-- Barra Inferior de Resumo -->
+				<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-xl p-5 shadow-xs border border-slate-200 mt-2">
+					<div class="flex items-center gap-3">
+						<span class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-700">
+							<span class="material-symbols-outlined text-xl">event_repeat</span>
+						</span>
+						<div>
+							<p class="text-sm font-bold text-slate-900"
+								th:text="'Total de ' + ${totalMarmitas} + (${totalMarmitas == 1} ? ' entrega semanal programada' : ' entregas semanais programadas')">Total de 0 entregas semanais programadas</p>
+							<p class="text-xs text-slate-500">Você pode pausar ou reprogramar suas entregas com até 24h de antecedência.</p>
+						</div>
+					</div>
+					<a th:href="@{/catalogo}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition cursor-pointer">
+						<span class="material-symbols-outlined text-sm">add</span>
+						Adicionar Marmita
+					</a>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<div th:replace="~{fragments/layout :: toast}"></div>
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+	<script>
+		// Filter and Search logic with Flying Badges Animation
+		const searchInput = document.getElementById('searchInput');
+		const filterToggleBtn = document.getElementById('filterToggleBtn');
+		const filterPopover = document.getElementById('filterPopover');
+		const activeBadgesContainer = document.getElementById('activeBadgesContainer');
+		const availableBadgesContainer = document.getElementById('availableBadgesContainer');
+		const emptySelectedMsg = document.getElementById('emptySelectedMsg');
+		const selectedHintText = document.getElementById('selectedHintText');
+		const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+		const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+		const activeFilterCount = document.getElementById('activeFilterCount');
+		const filterBadgeIndicator = document.getElementById('filterBadgeIndicator');
+
+		const allTagsData = [
+			{ tag: 'Low Carb', category: 'emerald' },
+			{ tag: 'Sem Glúten', category: 'orange' },
+			{ tag: 'Sem Lactose', category: 'amber' },
+			{ tag: 'Orgânico', category: 'orange' },
+			{ tag: 'Rico em Proteínas', category: 'amber' },
+			{ tag: 'Ômega 3', category: 'emerald' },
+			{ tag: 'Artesanal', category: 'amber' },
+			{ tag: 'Sem Conservantes', category: 'emerald' }
+		];
+
+		let selectedTags = new Set();
+
+		function getAvailableBadgeClasses(category) {
+			if (category === 'emerald') {
+				return 'filter-badge px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/70 transition cursor-pointer flex items-center gap-1 active:scale-95 duration-150';
+			} else if (category === 'orange') {
+				return 'filter-badge px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200/70 transition cursor-pointer flex items-center gap-1 active:scale-95 duration-150';
+			} else {
+				return 'filter-badge px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200/70 transition cursor-pointer flex items-center gap-1 active:scale-95 duration-150';
+			}
+		}
+
+		function togglePopover(show) {
+			if (show === undefined) {
+				const isHidden = filterPopover.classList.contains('hidden');
+				togglePopover(isHidden);
+				return;
+			}
+			if (show) {
+				filterPopover.classList.remove('hidden');
+				filterToggleBtn.classList.remove('bg-white', 'text-slate-700');
+				filterToggleBtn.classList.add('bg-emerald-700', 'text-white', 'ring-2', 'ring-emerald-700/20');
+				filterToggleBtn.setAttribute('aria-expanded', 'true');
+			} else {
+				filterPopover.classList.add('hidden');
+				filterToggleBtn.classList.remove('bg-emerald-700', 'text-white', 'ring-2', 'ring-emerald-700/20');
+				filterToggleBtn.classList.add('bg-white', 'text-slate-700');
+				filterToggleBtn.setAttribute('aria-expanded', 'false');
+			}
+		}
+
+		if (filterToggleBtn) {
+			filterToggleBtn.addEventListener('click', (e) => {
+				e.stopPropagation();
+				togglePopover();
+			});
+		}
+
+		document.addEventListener('click', (e) => {
+			if (filterPopover && !filterPopover.contains(e.target) && !filterToggleBtn.contains(e.target)) {
+				togglePopover(false);
+			}
+		});
+
+		function selectBadge(badgeBtn) {
+			const tag = badgeBtn.getAttribute('data-tag');
+			if (selectedTags.has(tag)) return;
+			selectedTags.add(tag);
+			renderBadgesUI();
+			filterCards();
+		}
+
+		function deselectBadge(activeBtn) {
+			const tag = activeBtn.getAttribute('data-tag');
+			if (!selectedTags.has(tag)) return;
+			selectedTags.delete(tag);
+			renderBadgesUI();
+			filterCards();
+		}
+
+		function renderBadgesUI() {
+			if (!activeBadgesContainer || !availableBadgesContainer) return;
+			activeBadgesContainer.innerHTML = '';
+			if (selectedTags.size === 0) {
+				if (emptySelectedMsg) {
+					activeBadgesContainer.appendChild(emptySelectedMsg);
+					emptySelectedMsg.style.display = 'block';
+				}
+				if (selectedHintText) selectedHintText.textContent = 'Nenhum filtro ativo';
+			} else {
+				if (emptySelectedMsg) emptySelectedMsg.style.display = 'none';
+				if (selectedHintText) selectedHintText.textContent = `${selectedTags.size} selecionado${selectedTags.size > 1 ? 's' : ''}`;
+
+				allTagsData.forEach(item => {
+					if (selectedTags.has(item.tag)) {
+						const badge = document.createElement('button');
+						badge.type = 'button';
+						badge.setAttribute('data-tag', item.tag);
+						badge.setAttribute('data-category', item.category);
+						badge.className = 'group flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-700 text-white shadow-xs hover:bg-emerald-800 transition cursor-pointer';
+						badge.innerHTML = `
+							<span>${item.tag}</span>
+							<span class="material-symbols-outlined text-[13px] bg-white/20 rounded-full p-0.5 group-hover:bg-rose-500 transition">close</span>
+						`;
+						badge.addEventListener('click', () => deselectBadge(badge));
+						activeBadgesContainer.appendChild(badge);
+					}
+				});
+			}
+
+			availableBadgesContainer.innerHTML = '';
+			const availableTags = allTagsData.filter(item => !selectedTags.has(item.tag));
+			
+			if (availableTags.length === 0) {
+				const allSelectedMsg = document.createElement('p');
+				allSelectedMsg.className = 'text-xs text-slate-400 italic py-2';
+				allSelectedMsg.textContent = 'Todos os filtros foram aplicados!';
+				availableBadgesContainer.appendChild(allSelectedMsg);
+			} else {
+				availableTags.forEach(item => {
+					const btn = document.createElement('button');
+					btn.type = 'button';
+					btn.setAttribute('data-tag', item.tag);
+					btn.setAttribute('data-category', item.category);
+					btn.className = getAvailableBadgeClasses(item.category);
+					btn.innerHTML = `
+						<span>${item.tag}</span>
+						<span class="material-symbols-outlined text-[13px] opacity-60">add</span>
+					`;
+					btn.addEventListener('click', () => selectBadge(btn));
+					availableBadgesContainer.appendChild(btn);
+				});
+			}
+
+			if (selectedTags.size === 0) {
+				if (activeFilterCount) {
+					activeFilterCount.textContent = 'Todos';
+					activeFilterCount.className = 'text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full';
+				}
+				if (filterBadgeIndicator) {
+					filterBadgeIndicator.classList.add('hidden');
+					filterBadgeIndicator.classList.remove('flex');
+				}
+			} else {
+				if (activeFilterCount) {
+					activeFilterCount.textContent = `${selectedTags.size} ativo${selectedTags.size > 1 ? 's' : ''}`;
+					activeFilterCount.className = 'text-xs font-bold text-white bg-emerald-700 px-2.5 py-0.5 rounded-full shadow-xs';
+				}
+				if (filterBadgeIndicator) {
+					filterBadgeIndicator.textContent = selectedTags.size;
+					filterBadgeIndicator.classList.remove('hidden');
+					filterBadgeIndicator.classList.add('flex');
+				}
+			}
+		}
+
+		function filterCards() {
+			const term = (searchInput?.value || '').toLowerCase();
+			const cards = document.querySelectorAll('#marmitasGrid article');
+
+			cards.forEach(card => {
+				const title = card.querySelector('h2')?.innerText.toLowerCase() || '';
+				const restaurant = card.querySelector('p')?.innerText.toLowerCase() || '';
+				const cardBadges = Array.from(card.querySelectorAll('.p-5 span')).map(s => s.innerText.trim());
+				const cardBadgesLower = cardBadges.map(s => s.toLowerCase());
+
+				const matchesSearch = !term || title.includes(term) || restaurant.includes(term) || cardBadgesLower.some(b => b.includes(term));
+				
+				let matchesTags = true;
+				if (selectedTags.size > 0) {
+					matchesTags = Array.from(selectedTags).some(tag => cardBadges.includes(tag));
+				}
+
+				if (matchesSearch && matchesTags) {
+					card.style.display = 'flex';
+				} else {
+					card.style.display = 'none';
+				}
+			});
+		}
+
+		const initialAvailableButtons = document.querySelectorAll('#availableBadgesContainer .filter-badge');
+		initialAvailableButtons.forEach(btn => {
+			btn.addEventListener('click', () => selectBadge(btn));
+		});
+
+		if (clearFiltersBtn) {
+			clearFiltersBtn.addEventListener('click', () => {
+				if (selectedTags.size === 0) return;
+				selectedTags.clear();
+				renderBadgesUI();
+				filterCards();
+			});
+		}
+
+		if (applyFiltersBtn) {
+			applyFiltersBtn.addEventListener('click', () => {
+				togglePopover(false);
+			});
+		}
+
+		if (searchInput) {
+			searchInput.addEventListener('input', filterCards);
+		}
+	</script>
+</body>
+</html>

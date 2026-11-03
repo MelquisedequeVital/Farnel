@@ -9,7 +9,7 @@
 	<title th:text="${titulo} + ' • Farnel'">Farnel</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
 	<link rel="stylesheet" th:href="@{/css/farnel.css}">
 	<script src="https://cdn.tailwindcss.com"></script>
@@ -29,9 +29,12 @@
 					<a th:href="@{/catalogo}"
 						th:classappend="${ativo == 'catalogo'} ? 'text-primary font-semibold border-b border-primary' : 'text-on-surface-variant'"
 						class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1">Catálogo</a>
-					<a href="#"
-						th:classappend="${ativo == 'entregas'} ? 'text-primary font-semibold border-b border-primary' : 'text-on-surface-variant'"
-						class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1">Minhas Entregas</a>
+					<a th:href="@{/catalogo#restaurantes}"
+						th:classappend="${ativo == 'restaurantes'} ? 'text-primary font-semibold border-b border-primary' : 'text-on-surface-variant'"
+						class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1">Restaurantes</a>
+					<a th:href="@{/minhas-marmitas}"
+						th:classappend="${ativo == 'marmitas'} ? 'text-primary font-semibold border-b border-primary' : 'text-on-surface-variant'"
+						class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1">Minhas Marmitas</a>
 					<a th:href="@{/checkout}"
 						th:classappend="${ativo == 'plano'} ? 'text-primary font-semibold border-b border-primary' : 'text-on-surface-variant'"
 						class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1 flex items-center gap-2">
@@ -66,14 +69,16 @@
 
 	<!-- Aviso flutuante para mensagens de feedback (flash attribute "mensagem") -->
 	<div th:fragment="toast" th:if="${mensagem != null}" id="toast"
-		class="fixed bottom-8 right-margin bg-on-surface text-surface px-6 py-3 text-body-sm font-body-sm flex items-center gap-3 transition-opacity duration-300 z-50">
+		class="fixed bottom-8 right-margin bg-on-surface text-surface px-6 py-3 text-body-sm font-body-sm flex items-center gap-3 transition-opacity duration-300 z-50 shadow-lg">
 		<span class="material-symbols-outlined text-primary-fixed text-[18px]">check_circle</span>
 		<span th:text="${mensagem}">Mensagem</span>
 		<script>
 			setTimeout(() => {
 				const toast = document.getElementById('toast');
-				toast.classList.add('opacity-0');
-				setTimeout(() => toast.remove(), 300);
+				if (toast) {
+					toast.classList.add('opacity-0');
+					setTimeout(() => toast.remove(), 300);
+				}
 			}, 3000);
 		</script>
 	</div>

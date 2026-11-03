@@ -28,6 +28,7 @@ public class CheckoutService {
 
 	private final Carrinho carrinho;
 	private final PratoRepository pratoRepository;
+	private final AssinaturaService assinaturaService;
 
 	/** Adiciona o prato ao carrinho e devolve o nome dele para a mensagem de feedback. */
 	public String adicionar(Long pratoId) {
@@ -74,9 +75,10 @@ public class CheckoutService {
 	}
 
 	/**
-	 * Finaliza a compra fictícia: não há integração com pagamento nem gravação no
-	 * banco. Apenas monta o resumo e esvazia o carrinho.
+	 * Finaliza a compra fictícia: monta o resumo, cadastra as assinaturas recorrentes
+	 * associadas ao consumidor e esvazia o carrinho.
 	 */
+	@Transactional
 	public PedidoConfirmado finalizar(LocalDate dataEntrega, String observacoes) {
 		List<ItemCarrinho> itens = listarItens();
 		if (itens.isEmpty()) {
@@ -96,6 +98,8 @@ public class CheckoutService {
 				calcularTotal(itens),
 				diaEntrega,
 				observacoes == null || observacoes.isBlank() ? null : observacoes.trim());
+
+		assinaturaService.criarAssinaturasDoCarrinho(itens, dataEntrega);
 
 		carrinho.limpar();
 		return pedido;

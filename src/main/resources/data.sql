@@ -53,3 +53,27 @@ FROM (VALUES
 ) AS v (nome, descricao, preco, alergenos, imagem, destaque, cnpj)
 JOIN restaurante r ON r.cnpj = v.cnpj
 WHERE NOT EXISTS (SELECT 1 FROM prato p WHERE p.nome = v.nome);
+
+-- Consumidor padrão para o módulo sem autenticação
+INSERT INTO consumidor (nome, email, endereco) VALUES
+	('Ana Souza', 'ana.souza@farnel.com.br', 'Av. Epitácio Pessoa, 1000')
+ON CONFLICT (email) DO NOTHING;
+
+-- Assinaturas ativas de exemplo (recorrência)
+INSERT INTO assinatura (status, dias_semana, horario_entrega, valor, consumidor_id, prato_id)
+SELECT 'ATIVA', 'Terça-feira', '12:30', p.preco, c.id, p.id
+FROM prato p, consumidor c
+WHERE p.nome = 'Frango Grelhado com Arroz e Legumes' AND c.email = 'ana.souza@farnel.com.br'
+  AND NOT EXISTS (SELECT 1 FROM assinatura a WHERE a.prato_id = p.id AND a.consumidor_id = c.id);
+
+INSERT INTO assinatura (status, dias_semana, horario_entrega, valor, consumidor_id, prato_id)
+SELECT 'ATIVA', 'Quarta-feira', '13:00', p.preco, c.id, p.id
+FROM prato p, consumidor c
+WHERE p.nome = 'Salmão Grelhado com Arroz e Legumes' AND c.email = 'ana.souza@farnel.com.br'
+  AND NOT EXISTS (SELECT 1 FROM assinatura a WHERE a.prato_id = p.id AND a.consumidor_id = c.id);
+
+INSERT INTO assinatura (status, dias_semana, horario_entrega, valor, consumidor_id, prato_id)
+SELECT 'ATIVA', 'Sexta-feira', '12:15', p.preco, c.id, p.id
+FROM prato p, consumidor c
+WHERE p.nome = 'Carne de Panela com Batatas' AND c.email = 'ana.souza@farnel.com.br'
+  AND NOT EXISTS (SELECT 1 FROM assinatura a WHERE a.prato_id = p.id AND a.consumidor_id = c.id);

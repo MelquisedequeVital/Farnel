@@ -121,13 +121,23 @@
 							<h4 th:text="${prato.nome}" class="font-headline-sm text-headline-sm text-on-surface font-normal leading-snug mb-1 group-hover:text-primary transition-colors">Nome do prato</h4>
 							<span th:text="'R$ ' + ${#numbers.formatDecimal(prato.preco, 1, 'POINT', 2, 'COMMA')}" class="font-body-sm text-body-sm text-outline">R$ 0,00</span>
 							<span th:if="${!#strings.isEmpty(prato.alergenos)}" th:text="'Contém: ' + ${prato.alergenos}" class="font-body-sm text-body-sm text-on-surface-variant">Contém: alérgenos</span>
-							<form th:action="@{/carrinho/adicionar}" method="post" class="mt-space-sm self-start">
-								<input type="hidden" name="pratoId" th:value="${prato.id}">
-								<button type="submit"
-									class="font-label-md text-label-md uppercase tracking-wider text-primary hover:text-primary-container font-semibold transition-colors flex items-center gap-1.5">
-									<span>+ Adicionar ao Plano Semanal</span>
-								</button>
-							</form>
+							<div class="mt-space-sm flex flex-col gap-2 self-start">
+								<form th:action="@{/carrinho/adicionar}" method="post">
+									<input type="hidden" name="pratoId" th:value="${prato.id}">
+									<button type="submit"
+										class="font-label-md text-label-md uppercase tracking-wider text-primary hover:text-primary-container font-semibold transition-colors flex items-center gap-1.5">
+										<span>+ Adicionar ao Plano Semanal</span>
+									</button>
+								</form>
+								<form th:action="@{/minhas-marmitas/criar}" method="post">
+									<input type="hidden" name="pratoId" th:value="${prato.id}">
+									<button type="submit"
+										class="font-label-md text-label-md uppercase tracking-wider text-secondary hover:text-on-surface font-semibold transition-colors flex items-center gap-1.5">
+										<span class="material-symbols-outlined text-[15px]">event_repeat</span>
+										<span>Assinar Marmita Recorrente</span>
+									</button>
+								</form>
+							</div>
 						</div>
 					</article>
 				</div>
