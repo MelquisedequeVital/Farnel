@@ -29,6 +29,13 @@ public class Restaurante {
 	@Column(nullable = false, unique = true, length = 14)
 	private String cnpj;
 
+	private String categoria;
+
+	@Column(length = 1000)
+	private String descricao;
+
+	private String imagem;
+
 	@OneToMany(mappedBy = "restaurante")
 	private List<Prato> cardapio = new ArrayList<>();
 

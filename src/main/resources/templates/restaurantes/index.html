@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Restaurantes Parceiros')}"></head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+
+	<header th:replace="~{fragments/layout :: header('restaurantes')}"></header>
+
+	<main class="w-full pt-20 bg-background min-h-screen">
+		<div class="flex flex-col w-full">
+
+			<!-- SUB-HEADER EDITORIAL & FILTROS POR CATEGORIA -->
+			<section class="w-full px-margin pt-space-xl pb-space-lg bg-surface">
+				<div class="flex items-baseline justify-between mb-space-md">
+					<div class="flex items-baseline gap-4">
+						<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-semibold">Cozinhas Parceiras</span>
+						<h1 class="font-headline-md text-headline-md text-on-surface font-normal tracking-tight">Curadoria de Restaurantes &amp; Produtores Artesanais</h1>
+					</div>
+					<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Origem &amp; Identidade</span>
+				</div>
+
+				<div class="flex items-center justify-between pt-space-sm">
+					<nav class="flex items-center gap-10">
+						<a th:href="@{/restaurantes(busca=${busca})}"
+							th:classappend="${categoriaSelecionada == null or categoriaSelecionada.isEmpty()} ? 'text-primary after:bg-primary font-semibold' : 'text-on-surface-variant hover:text-on-surface after:bg-transparent hover:after:bg-surface-variant'"
+							class="font-label-lg text-label-lg uppercase tracking-wider relative py-2 transition-colors after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5">
+							Todas as Cozinhas
+						</a>
+						<a th:each="cat : ${categorias}"
+							th:href="@{/restaurantes(categoria=${cat}, busca=${busca})}"
+							th:text="${cat}"
+							th:classappend="${cat == categoriaSelecionada} ? 'text-primary after:bg-primary font-semibold' : 'text-on-surface-variant hover:text-on-surface after:bg-transparent hover:after:bg-surface-variant'"
+							class="font-label-lg text-label-lg uppercase tracking-wider relative py-2 transition-colors after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5">
+							Categoria
+						</a>
+					</nav>
+					<form th:action="@{/restaurantes}" method="get" class="relative flex items-center w-72">
+						<input type="hidden" name="categoria" th:if="${categoriaSelecionada != null}" th:value="${categoriaSelecionada}">
+						<span class="material-symbols-outlined text-outline text-[20px] mr-2">search</span>
+						<input type="text" name="busca" th:value="${busca}" placeholder="Buscar cozinha, especialidade..."
+							class="w-full bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none py-1">
+					</form>
+				</div>
+			</section>
+
+			<!-- FAIXA DE CATEGORIAS VISUAL -->
+			<section class="w-full px-margin pt-space-xl pb-space-lg bg-surface">
+				<div class="flex items-baseline justify-between mb-space-md">
+					<div class="flex items-baseline gap-3">
+						<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-semibold">Especialidades</span>
+						<h3 class="font-headline-sm text-headline-sm text-on-surface font-normal">Navegue por Linhas Gastronômicas</h3>
+					</div>
+				</div>
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+					<a th:each="cat : ${categorias}"
+						th:href="@{/restaurantes(categoria=${cat})}"
+						class="group p-6 bg-surface-container-low border border-surface-container-highest hover:border-primary transition-all duration-300">
+						<div class="flex items-start justify-between">
+							<span class="material-symbols-outlined text-secondary text-[32px] group-hover:scale-110 transition-transform">restaurant</span>
+							<span th:text="${contagemPorCategoria.get(cat)} + (${contagemPorCategoria.get(cat) == 1} ? ' Cozinha' : ' Cozinhas')"
+								class="font-label-sm text-label-sm uppercase tracking-wider text-outline px-2 py-0.5 bg-surface-container-high">0 Cozinhas</span>
+						</div>
+						<h4 th:text="${cat}" class="font-headline-sm text-headline-sm text-on-surface mt-4 group-hover:text-primary transition-colors">Categoria</h4>
+						<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 font-light">Pratos frescos preparados em pequenos lotes por chefs especialistas.</p>
+						<span class="inline-block mt-4 font-label-md text-label-md uppercase tracking-wider text-primary font-semibold group-hover:underline">
+							Explorar Cozinhas &rarr;
+						</span>
+					</a>
+				</div>
+			</section>
+
+			<!-- GRID EDITORIAL DE RESTAURANTES -->
+			<section id="lista-restaurantes" class="w-full px-margin pt-space-2xl pb-space-3xl bg-surface">
+				<div class="flex items-end justify-between pb-space-sm mb-space-xl border-b border-surface-container-highest">
+					<div>
+						<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary block font-semibold mb-1">Rede Homologada</span>
+						<h2 class="font-headline-lg text-headline-lg text-on-surface font-normal">Restaurantes Disponíveis no Farnel</h2>
+					</div>
+					<span class="font-body-sm text-body-sm text-outline"
+						th:text="'Mostrando ' + ${#lists.size(restaurantes)} + (${#lists.size(restaurantes) == 1} ? ' restaurante' : ' restaurantes')">Mostrando 0 restaurantes</span>
+				</div>
+
+				<!-- Aviso quando vazio -->
+				<div th:if="${#lists.isEmpty(restaurantes)}" class="py-space-3xl text-center">
+					<span class="material-symbols-outlined text-outline text-[40px]">storefront</span>
+					<p class="font-headline-sm text-headline-sm text-on-surface font-normal mt-space-sm">Nenhum restaurante encontrado</p>
+					<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Tente remover o filtro ou pesquisar por outro termo.</p>
+					<a th:href="@{/restaurantes}" class="inline-block mt-space-md font-label-md text-label-md uppercase tracking-wider text-primary font-semibold">Ver todos os restaurantes</a>
+				</div>
+
+				<!-- Cards de Restaurantes -->
+				<div th:unless="${#lists.isEmpty(restaurantes)}" class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+					<article th:each="rest : ${restaurantes}" class="flex flex-col bg-surface-container-lowest border border-surface-container-highest hover:border-primary/50 transition-all duration-300 group">
+						<div class="w-full aspect-[16/10] overflow-hidden bg-surface-container-high relative">
+							<img th:if="${rest.imagem != null}" th:src="@{${rest.imagem}}" th:alt="${rest.nomeFantasia}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+							<div th:unless="${rest.imagem != null}" class="w-full h-full flex items-center justify-center bg-surface-container-high">
+								<span class="material-symbols-outlined text-outline text-[48px]">storefront</span>
+							</div>
+							<div class="absolute top-4 left-4">
+								<span th:if="${rest.categoria != null}" th:text="${rest.categoria}"
+									class="px-3 py-1 bg-surface/90 backdrop-blur-sm text-on-surface font-label-sm text-label-sm uppercase tracking-wider font-semibold shadow-sm">
+									Categoria
+								</span>
+							</div>
+						</div>
+
+						<div class="p-6 flex flex-col flex-1 justify-between">
+							<div>
+								<div class="flex items-start justify-between gap-2 mb-2">
+									<h3 th:text="${rest.nomeFantasia}" class="font-headline-md text-headline-md text-on-surface font-normal group-hover:text-primary transition-colors">Nome do Restaurante</h3>
+								</div>
+								<p th:text="${rest.descricao}" class="font-body-sm text-body-sm text-on-surface-variant font-light mb-4 leading-relaxed line-clamp-3">
+									Descrição editorial do restaurante parceiro.
+								</p>
+							</div>
+
+							<div class="pt-4 border-t border-surface-container-highest flex items-center justify-between">
+								<span class="font-body-sm text-body-sm text-outline flex items-center gap-1.5">
+									<span class="material-symbols-outlined text-[18px]">dinner_dining</span>
+									<span th:text="${#lists.size(rest.cardapio)} + ' Pratos'">0 Pratos</span>
+								</span>
+
+								<a th:href="@{/catalogo(restaurante=${rest.id})}"
+									class="font-label-md text-label-md uppercase tracking-wider text-primary hover:text-primary-container font-semibold transition-colors flex items-center gap-1">
+									<span>Ver Cardápio</span>
+									<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+								</a>
+							</div>
+						</div>
+					</article>
+				</div>
+
+			</section>
+
+		</div>
+	</main>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<div th:replace="~{fragments/layout :: toast}"></div>
+
+</body>
+</html>

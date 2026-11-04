@@ -43,6 +43,7 @@ public class SecurityConfig {
 				.requestMatchers(
 					"/",
 					"/catalogo/**",
+					"/restaurantes/**",
 					"/pratos/imagem/**",
 					"/login",
 					"/cadastro/**",

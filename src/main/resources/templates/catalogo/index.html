@@ -20,17 +20,18 @@
 
 				<div class="flex items-center justify-between pt-space-sm">
 					<nav class="flex items-center gap-10">
-						<a th:href="@{/catalogo(busca=${busca})}"
+						<a th:href="@{/catalogo(busca=${busca}, restaurante=${restauranteId})}"
 							th:classappend="${filtroSelecionado == null} ? 'text-primary after:bg-primary' : 'text-on-surface-variant hover:text-on-surface after:bg-transparent hover:after:bg-surface-variant'"
 							class="font-label-lg text-label-lg uppercase tracking-wider relative py-2 transition-colors after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5">Todos</a>
 						<a th:each="f : ${filtros}"
-							th:href="@{/catalogo(filtro=${f.slug}, busca=${busca})}"
+							th:href="@{/catalogo(filtro=${f.slug}, busca=${busca}, restaurante=${restauranteId})}"
 							th:text="${f.rotulo}"
 							th:classappend="${f == filtroSelecionado} ? 'text-primary after:bg-primary' : 'text-on-surface-variant hover:text-on-surface after:bg-transparent hover:after:bg-surface-variant'"
 							class="font-label-lg text-label-lg uppercase tracking-wider relative py-2 transition-colors after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5">Filtro</a>
 					</nav>
 					<form th:action="@{/catalogo}" method="get" class="relative flex items-center w-72">
 						<input type="hidden" name="filtro" th:if="${filtroSelecionado != null}" th:value="${filtroSelecionado.slug}">
+						<input type="hidden" name="restaurante" th:if="${restauranteId != null}" th:value="${restauranteId}">
 						<span class="material-symbols-outlined text-outline text-[20px] mr-2">tune</span>
 						<input type="text" name="busca" th:value="${busca}" placeholder="Filtrar por nome, ingrediente..."
 							class="w-full bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none py-1">
@@ -80,7 +81,7 @@
 					</div>
 				</div>
 				<div class="flex gap-6 overflow-x-auto scroll-smooth pb-2" id="category-track" style="scrollbar-width: none;">
-					<a th:each="f : ${filtros}" th:href="@{/catalogo(filtro=${f.slug})}" class="group flex-shrink-0 w-80 cursor-pointer block">
+					<a th:each="f : ${filtros}" th:href="@{/catalogo(filtro=${f.slug}, restaurante=${restauranteId})}" class="group flex-shrink-0 w-80 cursor-pointer block">
 						<div class="w-full h-44 overflow-hidden bg-surface-container-high mb-3">
 							<img th:src="${f.imagem}" th:alt="${f.rotulo}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
 						</div>
@@ -104,6 +105,25 @@
 						th:text="'Mostrando ' + ${#lists.size(pratos)} + (${#lists.size(pratos) == 1} ? ' criação' : ' criações')">Mostrando 0 criações</span>
 				</div>
 
+				<!-- Aviso de filtro ativo por restaurante -->
+				<div th:if="${restauranteFiltro != null}" class="mb-space-lg p-5 bg-surface-container-low border border-surface-container-highest flex items-center justify-between">
+					<div class="flex items-center gap-4">
+						<span class="material-symbols-outlined text-secondary text-[26px]">storefront</span>
+						<div>
+							<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline block">Filtrando por Cozinha Parceira</span>
+							<div class="flex items-center gap-3">
+								<span class="font-headline-sm text-headline-sm text-primary font-normal" th:text="${restauranteFiltro.nomeFantasia}">Nome do Restaurante</span>
+								<span th:if="${restauranteFiltro.categoria != null}" class="font-label-sm text-label-sm px-2.5 py-0.5 bg-surface-container-high text-on-surface-variant uppercase tracking-wider" th:text="${restauranteFiltro.categoria}">Categoria</span>
+							</div>
+						</div>
+					</div>
+					<a th:href="@{/catalogo(filtro=${filtroSelecionado != null ? filtroSelecionado.slug : null}, busca=${busca})}"
+						class="font-label-sm text-label-sm uppercase tracking-wider text-outline hover:text-error transition-colors flex items-center gap-1.5 px-3 py-1.5 border border-surface-container-highest hover:border-error">
+						<span class="material-symbols-outlined text-[18px]">close</span>
+						Limpar Filtro
+					</a>
+				</div>
+
 				<div th:if="${#lists.isEmpty(pratos)}" class="py-space-3xl text-center">
 					<span class="material-symbols-outlined text-outline text-[40px]">restaurant</span>
 					<p class="font-headline-sm text-headline-sm text-on-surface font-normal mt-space-sm">Nenhum prato encontrado</p>
@@ -118,6 +138,9 @@
 							<span th:unless="${prato.imagem != null}" class="material-symbols-outlined text-outline text-[48px]">restaurant</span>
 						</div>
 						<div class="flex flex-col flex-1">
+							<a th:href="@{/catalogo(restaurante=${prato.restaurante.id})}"
+								class="font-label-sm text-label-sm uppercase tracking-wider text-secondary hover:underline self-start mb-0.5"
+								th:text="${prato.restaurante.nomeFantasia}">Restaurante</a>
 							<h4 th:text="${prato.nome}" class="font-headline-sm text-headline-sm text-on-surface font-normal leading-snug mb-1 group-hover:text-primary transition-colors">Nome do prato</h4>
 							<span th:text="'R$ ' + ${#numbers.formatDecimal(prato.preco, 1, 'POINT', 2, 'COMMA')}" class="font-body-sm text-body-sm text-outline">R$ 0,00</span>
 							<span th:if="${!#strings.isEmpty(prato.alergenos)}" th:text="'Contém: ' + ${prato.alergenos}" class="font-body-sm text-body-sm text-on-surface-variant">Contém: alérgenos</span>

@@ -43,10 +43,15 @@ public class CardapioService {
 	 * (nome ou descrição). A comparação ignora acentos e maiúsculas.
 	 */
 	public List<Prato> buscarPorFiltro(FiltroCardapio filtro, String busca) {
+		return buscarPorFiltro(filtro, busca, null);
+	}
+
+	public List<Prato> buscarPorFiltro(FiltroCardapio filtro, String busca, Long restauranteId) {
 		String termoBusca = Textos.normalizar(busca);
 		return pratoRepository.findAllByOrderByNomeAsc().stream()
 				.filter(p -> filtro == null || livreDe(p, filtro))
 				.filter(p -> termoBusca.isEmpty() || casaComBusca(p, termoBusca))
+				.filter(p -> restauranteId == null || p.getRestaurante().getId().equals(restauranteId))
 				.toList();
 	}
 

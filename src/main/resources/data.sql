@@ -2,11 +2,20 @@
 -- mas só insere o que ainda não existe, então dados cadastrados pela aplicação são preservados.
 -- Restaurantes e CNPJs são fictícios. Imagens: Unsplash (https://unsplash.com/license).
 
-INSERT INTO restaurante (nome_fantasia, cnpj) VALUES
-	('Cozinha Bella Massa', '11111111000101'),
-	('Sabor do Mar', '22222222000102'),
-	('Terra & Fogo', '33333333000103')
-ON CONFLICT (cnpj) DO NOTHING;
+INSERT INTO restaurante (nome_fantasia, cnpj, categoria, descricao, imagem) VALUES
+	('Cozinha Bella Massa', '11111111000101', 'Massas & Trattoria',
+		'Cozinha artesanal inspirada nas tradições italianas, massas frescas feitas à mão e molhos de cozimento lento.',
+		'/img/pratos/lasanha-bolonhesa.jpg'),
+	('Sabor do Mar', '22222222000102', 'Pescados & Frutos do Mar',
+		'Pescados frescos da costa paraibana, ensopados aromáticos e preparos grelhados com ingredientes regionais.',
+		'/img/pratos/salmao-grelhado.jpg'),
+	('Terra & Fogo', '33333333000103', 'Grelhados & Saudável',
+		'Gastronomia contemporânea com cortes nobres grelhados, bowls nutritivos, grãos orgânicos e opções veganas.',
+		'/img/pratos/curry-de-frango.jpg')
+ON CONFLICT (cnpj) DO UPDATE SET
+	categoria = EXCLUDED.categoria,
+	descricao = EXCLUDED.descricao,
+	imagem = EXCLUDED.imagem;
 
 INSERT INTO prato (nome, descricao, preco, alergenos, imagem, destaque, restaurante_id)
 SELECT v.nome, v.descricao, v.preco, v.alergenos, v.imagem, v.destaque, r.id
