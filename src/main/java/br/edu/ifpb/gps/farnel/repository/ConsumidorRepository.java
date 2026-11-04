@@ -12,4 +12,6 @@ public interface ConsumidorRepository extends JpaRepository<Consumidor, Long> {
 
 	Optional<Consumidor> findByEmail(String email);
 
+	Optional<Consumidor> findByUsuario(br.edu.ifpb.gps.farnel.model.Usuario usuario);
+
 }

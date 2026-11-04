@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Meu Perfil')}"></head>
+
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col justify-between">
+
+	<header th:replace="~{fragments/layout :: header('perfil')}"></header>
+
+	<main class="pt-28 pb-16 px-margin flex-grow flex justify-center">
+		<div class="w-full max-w-3xl space-y-8">
+			<!-- Header do perfil -->
+			<div class="flex items-center justify-between border-b border-surface-container-highest pb-6">
+				<div>
+					<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary block mb-1">Conta &amp; Preferências</span>
+					<h1 class="font-headline-lg text-headline-lg text-primary">Gerenciar Conta</h1>
+					<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+						Edite seus dados cadastrais, endereço de entrega das marmitas e método de pagamento.
+					</p>
+				</div>
+				<div class="flex items-center gap-3 bg-surface-container-low px-4 py-3 border border-surface-container-highest">
+					<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+						<span class="material-symbols-outlined text-on-primary text-[24px]">person</span>
+					</div>
+					<div>
+						<span class="block font-label-md text-label-md uppercase tracking-wider text-on-surface font-semibold" th:text="${consumidor.nome}">Nome</span>
+						<span class="block font-body-sm text-body-sm text-outline" th:text="${consumidor.email}">email@farnel.com</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Formulário de Edição -->
+			<div class="bg-surface-container-lowest p-8 border border-surface-container-highest">
+				<form th:action="@{/perfil}" th:object="${form}" method="post" class="space-y-6">
+
+					<!-- Dados Pessoais -->
+					<div class="border-b border-surface-container-highest pb-6">
+						<h2 class="font-headline-sm text-headline-sm text-primary mb-4 flex items-center gap-2">
+							<span class="material-symbols-outlined text-[22px]">badge</span>
+							Dados Pessoais
+						</h2>
+						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+							<div class="md:col-span-2">
+								<label for="nome" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Nome Completo</label>
+								<input type="text" id="nome" th:field="*{nome}" required
+									class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface">
+								<span th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}" class="text-error text-xs block mt-1"></span>
+							</div>
+
+							<div>
+								<label for="email" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">E-mail (Identificador da Conta)</label>
+								<input type="email" id="email" th:value="${consumidor.email}" disabled
+									class="w-full px-4 py-2.5 bg-surface-container-low border border-surface-container-highest text-outline cursor-not-allowed font-body-sm text-body-sm">
+								<span class="text-[11px] text-outline block mt-1">O e-mail é vinculado à sua autenticação e não pode ser alterado diretamente.</span>
+							</div>
+
+							<div>
+								<label for="telefone" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Telefone / WhatsApp</label>
+								<input type="tel" id="telefone" th:field="*{telefone}" required
+									class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface">
+								<span th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}" class="text-error text-xs block mt-1"></span>
+							</div>
+						</div>
+					</div>
+
+					<!-- Endereço de Entrega -->
+					<div class="border-b border-surface-container-highest pb-6">
+						<h2 class="font-headline-sm text-headline-sm text-primary mb-4 flex items-center gap-2">
+							<span class="material-symbols-outlined text-[22px]">home_pin</span>
+							Local de Entrega Padrão
+						</h2>
+						<div>
+							<label for="endereco" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Endereço Completo</label>
+							<textarea id="endereco" th:field="*{endereco}" rows="2" required
+								class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface"></textarea>
+							<span th:if="${#fields.hasErrors('endereco')}" th:errors="*{endereco}" class="text-error text-xs block mt-1"></span>
+						</div>
+					</div>
+
+					<!-- Forma de Pagamento Simulada -->
+					<div class="border-b border-surface-container-highest pb-6">
+						<h2 class="font-headline-sm text-headline-sm text-primary mb-4 flex items-center gap-2">
+							<span class="material-symbols-outlined text-[22px]">credit_card</span>
+							Forma de Pagamento Cadastrada
+						</h2>
+						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+							<div class="md:col-span-2">
+								<label for="tipoPagamento" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Método</label>
+								<select id="tipoPagamento" th:field="*{tipoPagamento}"
+									class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface">
+									<option value="Cartão de Crédito">Cartão de Crédito</option>
+									<option value="Pix">Pix Recorrente</option>
+								</select>
+							</div>
+
+							<div class="md:col-span-2">
+								<label for="titularCartao" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Titular</label>
+								<input type="text" id="titularCartao" th:field="*{titularCartao}"
+									class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface">
+							</div>
+
+							<div>
+								<label for="numeroCartaoMascarado" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Número do Cartão (ou final)</label>
+								<input type="text" id="numeroCartaoMascarado" th:field="*{numeroCartaoMascarado}" placeholder="•••• •••• •••• 4242"
+									class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface">
+							</div>
+
+							<div>
+								<label for="validadeCartao" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Validade</label>
+								<input type="text" id="validadeCartao" th:field="*{validadeCartao}" placeholder="MM/AA"
+									class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface">
+							</div>
+						</div>
+					</div>
+
+					<div class="flex items-center justify-between pt-2">
+						<a th:href="@{/minhas-marmitas}" class="font-label-lg text-label-lg uppercase tracking-wider text-outline hover:text-on-surface transition-colors">
+							Ir para Minhas Marmitas
+						</a>
+						<button type="submit"
+							class="px-8 py-3 bg-primary text-on-primary font-label-lg text-label-lg uppercase tracking-wider hover:bg-primary-container transition-colors shadow-sm">
+							Salvar Alterações
+						</button>
+					</div>
+
+				</form>
+			</div>
+		</div>
+	</main>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<div th:replace="~{fragments/layout :: toast}"></div>
+
+</body>
+</html>

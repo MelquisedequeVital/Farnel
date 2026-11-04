@@ -6,8 +6,11 @@ import java.time.LocalTime;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -34,6 +37,13 @@ public class AssinaturaService {
 
 	@Transactional
 	public Consumidor obterConsumidorAtivo() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+			Optional<Consumidor> logado = consumidorRepository.findByEmail(auth.getName());
+			if (logado.isPresent()) {
+				return logado.get();
+			}
+		}
 		return consumidorRepository.findFirstByOrderByIdAsc()
 				.orElseGet(() -> {
 					Consumidor novo = new Consumidor();

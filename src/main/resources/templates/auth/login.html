@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Entrar')}"></head>
+
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col justify-between">
+
+	<header th:replace="~{fragments/layout :: header('login')}"></header>
+
+	<main class="pt-28 pb-16 px-margin flex-grow flex items-center justify-center">
+		<div class="w-full max-w-md bg-surface-container-lowest p-8 md:p-10 border border-surface-container-highest shadow-sm">
+			<div class="mb-8 text-center">
+				<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary block mb-1">Acesso à Plataforma</span>
+				<h1 class="font-headline-lg text-headline-lg text-primary">Entrar no Farnel</h1>
+				<p class="font-body-sm text-body-sm text-on-surface-variant mt-2">Informe seus dados para acessar suas marmitas, restaurante ou entregas.</p>
+			</div>
+
+			<div th:if="${erroLogin != null}" class="mb-6 p-4 bg-error-container text-on-error-container text-body-sm font-body-sm flex items-center gap-2">
+				<span class="material-symbols-outlined text-[20px]">error</span>
+				<span th:text="${erroLogin}">E-mail ou senha incorretos.</span>
+			</div>
+
+			<div th:if="${mensagemLogout != null}" class="mb-6 p-4 bg-surface-container-high text-on-surface text-body-sm font-body-sm flex items-center gap-2">
+				<span class="material-symbols-outlined text-[20px]">info</span>
+				<span th:text="${mensagemLogout}">Você saiu com sucesso.</span>
+			</div>
+
+			<div th:if="${mensagemSucesso != null}" class="mb-6 p-4 bg-primary-fixed text-on-primary-fixed-variant text-body-sm font-body-sm flex items-center gap-2">
+				<span class="material-symbols-outlined text-[20px]">check_circle</span>
+				<span th:text="${mensagemSucesso}">Conta criada com sucesso!</span>
+			</div>
+
+			<form th:action="@{/login}" method="post" class="space-y-5">
+				<div>
+					<label for="username" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-2">E-mail</label>
+					<input type="email" id="username" name="username" required autofocus placeholder="seu.email@exemplo.com"
+						class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface transition-colors">
+				</div>
+
+				<div>
+					<label for="password" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-2">Senha</label>
+					<input type="password" id="password" name="password" required placeholder="••••••••"
+						class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface transition-colors">
+				</div>
+
+				<button type="submit"
+					class="w-full py-3 bg-primary text-on-primary font-label-lg text-label-lg uppercase tracking-wider hover:bg-primary-container transition-colors shadow-sm">
+					Entrar
+				</button>
+			</form>
+
+			<div class="mt-8 pt-6 border-t border-surface-container-highest text-center space-y-3">
+				<p class="font-body-sm text-body-sm text-on-surface-variant">
+					Ainda não tem conta de consumidor?
+				</p>
+				<a th:href="@{/cadastro}" class="inline-block font-label-lg text-label-lg uppercase tracking-wider text-secondary hover:underline">
+					Criar conta como Consumidor
+				</a>
+			</div>
+
+			<div class="mt-6 pt-4 border-t border-surface-container-highest text-center text-on-surface-variant text-[11px] space-y-1">
+				<p class="font-semibold text-on-surface">Acessos de Teste:</p>
+				<p>Consumidor: <code class="text-primary font-mono">ana.souza@farnel.com.br</code> / <code class="font-mono">123456</code></p>
+				<p>Parceiro: <code class="text-primary font-mono">parceiro@farnel.com.br</code> / <code class="font-mono">123456</code></p>
+				<p>Entregador: <code class="text-primary font-mono">entregador@farnel.com.br</code> / <code class="font-mono">123456</code></p>
+			</div>
+		</div>
+	</main>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<div th:replace="~{fragments/layout :: toast}"></div>
+
+</body>
+</html>

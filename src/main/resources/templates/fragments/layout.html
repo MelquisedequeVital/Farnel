@@ -26,42 +26,89 @@
 					<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary">Cozinha Artesanal</span>
 				</a>
 				<nav class="flex items-center gap-8 h-20">
+					<!-- Rotas comuns e do consumidor -->
 					<a th:href="@{/catalogo}"
 						th:classappend="${ativo == 'catalogo'} ? 'text-primary font-semibold border-b border-primary' : 'text-on-surface-variant'"
 						class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1">Catálogo</a>
 					<a th:href="@{/catalogo#restaurantes}"
 						th:classappend="${ativo == 'restaurantes'} ? 'text-primary font-semibold border-b border-primary' : 'text-on-surface-variant'"
 						class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1">Restaurantes</a>
-					<a th:href="@{/minhas-marmitas}"
-						th:classappend="${ativo == 'marmitas'} ? 'text-primary font-semibold border-b border-primary' : 'text-on-surface-variant'"
-						class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1">Minhas Marmitas</a>
-					<a th:href="@{/checkout}"
-						th:classappend="${ativo == 'plano'} ? 'text-primary font-semibold border-b border-primary' : 'text-on-surface-variant'"
-						class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1 flex items-center gap-2">
-						Meu Plano
-						<span th:if="${totalItensCarrinho != null and totalItensCarrinho > 0}" th:text="${totalItensCarrinho}"
-							class="min-w-5 h-5 px-1.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm flex items-center justify-center">0</span>
-					</a>
+
+					<!-- Menu exclusivo do Consumidor ou Visitante -->
+					<th:block th:if="${usuarioLogado == null or usuarioLogado.tipo.name() == 'CONSUMIDOR'}">
+						<a th:href="@{/minhas-marmitas}"
+							th:classappend="${ativo == 'marmitas'} ? 'text-primary font-semibold border-b border-primary' : 'text-on-surface-variant'"
+							class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1">Minhas Marmitas</a>
+						<a th:href="@{/checkout}"
+							th:classappend="${ativo == 'plano'} ? 'text-primary font-semibold border-b border-primary' : 'text-on-surface-variant'"
+							class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1 flex items-center gap-2">
+							Meu Plano
+							<span th:if="${totalItensCarrinho != null and totalItensCarrinho > 0}" th:text="${totalItensCarrinho}"
+								class="min-w-5 h-5 px-1.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm flex items-center justify-center">0</span>
+						</a>
+					</th:block>
+
 					<div class="h-6 w-px bg-surface-container-highest"></div>
-					<a th:href="@{/parceiro}" class="font-label-lg text-label-lg uppercase tracking-wider text-secondary hover:text-on-surface transition-colors py-1 flex items-center gap-1.5">
-						<span class="w-1.5 h-1.5 bg-secondary-container"></span>Portal do Parceiro (Cozinha)
+
+					<!-- Atalhos de Parceiro e Entregador -->
+					<a th:if="${usuarioLogado == null or usuarioLogado.tipo.name() == 'PARCEIRO'}" th:href="@{/parceiro}"
+						th:classappend="${ativo == 'parceiro'} ? 'text-primary font-semibold border-b border-primary' : 'text-secondary'"
+						class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1 flex items-center gap-1.5">
+						<span class="w-1.5 h-1.5 bg-secondary-container"></span>Portal do Parceiro
+					</a>
+
+					<a th:if="${usuarioLogado != null and usuarioLogado.tipo.name() == 'ENTREGADOR'}" th:href="@{/entregas}"
+						th:classappend="${ativo == 'entregas'} ? 'text-primary font-semibold border-b border-primary' : 'text-primary'"
+						class="font-label-lg text-label-lg uppercase tracking-wider hover:text-on-surface transition-colors py-1 flex items-center gap-1.5">
+						<span class="w-1.5 h-1.5 bg-primary"></span>Minhas Entregas
 					</a>
 				</nav>
 			</div>
-			<div class="flex items-center gap-8">
+
+			<div class="flex items-center gap-6">
 				<form th:action="@{/catalogo}" method="get" class="relative flex items-center border-b border-surface-container-highest focus-within:border-primary transition-colors py-1">
 					<span class="material-symbols-outlined text-outline text-[20px] mr-2">search</span>
 					<input type="text" name="busca" th:value="${busca}" placeholder="Buscar pratos, ingredientes..."
-						class="bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none w-56">
+						class="bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none w-48">
 				</form>
+
+				<!-- Bloco de Autenticação -->
 				<div class="flex items-center gap-3 pl-4 border-l border-surface-container-highest">
-					<div class="text-right">
-						<span class="block font-label-md text-label-md uppercase tracking-wider text-on-surface font-semibold">Visitante</span>
-						<a href="#" class="block font-label-sm text-label-sm uppercase text-outline hover:text-secondary transition-colors">Entrar</a>
-					</div>
-					<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-						<span class="material-symbols-outlined text-on-primary text-[20px]">person</span>
-					</div>
+					<th:block th:if="${estaAutenticado and usuarioLogado != null}">
+						<div class="text-right">
+							<a th:if="${usuarioLogado.tipo.name() == 'CONSUMIDOR'}" th:href="@{/perfil}" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface font-semibold hover:text-primary transition-colors" th:text="${usuarioLogado.nome}">Nome</a>
+							<span th:unless="${usuarioLogado.tipo.name() == 'CONSUMIDOR'}" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface font-semibold" th:text="${usuarioLogado.nome}">Nome</span>
+							
+							<div class="flex items-center justify-end gap-2 text-outline">
+								<span class="text-[10px] uppercase font-semibold text-secondary"
+									th:text="${usuarioLogado.tipo.name() == 'CONSUMIDOR' ? 'Consumidor' : (usuarioLogado.tipo.name() == 'PARCEIRO' ? 'Parceiro Cozinha' : 'Entregador')}">Perfil</span>
+								<span>•</span>
+								<form th:action="@{/logout}" method="post" class="inline">
+									<button type="submit" class="font-label-sm text-label-sm uppercase hover:text-error transition-colors">Sair</button>
+								</form>
+							</div>
+						</div>
+						<a th:if="${usuarioLogado.tipo.name() == 'CONSUMIDOR'}" th:href="@{/perfil}" class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary hover:opacity-90">
+							<span class="material-symbols-outlined text-[20px]">person</span>
+						</a>
+						<div th:unless="${usuarioLogado.tipo.name() == 'CONSUMIDOR'}" class="w-9 h-9 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+							<span class="material-symbols-outlined text-[20px]" th:text="${usuarioLogado.tipo.name() == 'PARCEIRO' ? 'soup_kitchen' : 'two_wheeler'}">badge</span>
+						</div>
+					</th:block>
+
+					<th:block th:unless="${estaAutenticado and usuarioLogado != null}">
+						<div class="text-right">
+							<span class="block font-label-md text-label-md uppercase tracking-wider text-on-surface font-semibold">Visitante</span>
+							<div class="flex items-center gap-2">
+								<a th:href="@{/login}" class="block font-label-sm text-label-sm uppercase text-outline hover:text-secondary transition-colors">Entrar</a>
+								<span class="text-outline text-xs">/</span>
+								<a th:href="@{/cadastro}" class="block font-label-sm text-label-sm uppercase text-primary font-semibold hover:underline">Cadastrar</a>
+							</div>
+						</div>
+						<a th:href="@{/login}" class="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center text-outline hover:text-primary">
+							<span class="material-symbols-outlined text-[20px]">account_circle</span>
+						</a>
+					</th:block>
 				</div>
 			</div>
 		</div>

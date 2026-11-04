@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Portal do Entregador')}"></head>
+
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col justify-between">
+
+	<header th:replace="~{fragments/layout :: header('entregas')}"></header>
+
+	<main class="pt-28 pb-16 px-margin flex-grow flex justify-center">
+		<div class="w-full max-w-5xl space-y-8">
+			<!-- Header da Área do Entregador -->
+			<div class="flex flex-col md:flex-row md:items-center justify-between border-b border-surface-container-highest pb-6 gap-4">
+				<div>
+					<div class="flex items-center gap-2">
+						<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+						<span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-semibold">Operação Logística Ativa</span>
+					</div>
+					<h1 class="font-headline-lg text-headline-lg text-primary mt-1">Rotas de Entrega do Dia</h1>
+					<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+						Itinerário de distribuição de marmitas lacradas e térmicas para a janela do almoço.
+					</p>
+				</div>
+
+				<!-- Cards de resumo rápido -->
+				<div class="flex items-center gap-4">
+					<div class="bg-surface-container-low px-5 py-3 border border-surface-container-highest">
+						<span class="block font-label-sm text-label-sm uppercase tracking-wider text-outline">Entregas no Turno</span>
+						<span class="font-headline-md text-headline-md text-primary font-semibold" th:text="${totalEntregasDia}">3</span>
+					</div>
+					<div class="bg-surface-container-low px-5 py-3 border border-surface-container-highest">
+						<span class="block font-label-sm text-label-sm uppercase tracking-wider text-outline">Ganhos Estimados</span>
+						<span class="font-headline-md text-headline-md text-secondary font-semibold"
+							th:text="'R$ ' + ${#numbers.formatDecimal(totalGanhosDia, 1, 'POINT', 2, 'COMMA')}">R$ 55,50</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Lista Ilustrativa de Rotas de Entrega -->
+			<div class="space-y-4">
+				<div th:each="rota : ${rotas}"
+					class="bg-surface-container-lowest p-6 border border-surface-container-highest hover:border-primary/40 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-6">
+
+					<div class="space-y-2 flex-grow">
+						<div class="flex items-center gap-3">
+							<span class="font-mono text-xs font-semibold px-2 py-0.5 bg-surface-container text-on-surface-variant" th:text="${rota.codigo}">ROT-101</span>
+							<span class="text-xs uppercase tracking-wider font-semibold px-2.5 py-0.5"
+								th:classappend="${rota.status == 'Pronto para Coleta'} ? 'bg-secondary-fixed text-on-secondary-fixed' : (${rota.status == 'Em Rota de Entrega'} ? 'bg-primary-fixed text-on-primary-fixed-variant' : 'bg-surface-container-high text-outline')"
+								th:text="${rota.status}">Status</span>
+							<span class="text-xs text-outline flex items-center gap-1">
+								<span class="material-symbols-outlined text-[16px]">schedule</span>
+								Previsão: <strong th:text="${rota.horarioPrevisto}">12:15</strong>
+							</span>
+						</div>
+
+						<div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+							<div class="flex items-start gap-2">
+								<span class="material-symbols-outlined text-secondary text-[20px] mt-0.5">storefront</span>
+								<div>
+									<span class="block font-label-sm text-label-sm uppercase tracking-wider text-outline">Coleta (Restaurante)</span>
+									<span class="font-body-sm text-body-sm font-semibold text-on-surface" th:text="${rota.restauranteOrigem}">Cozinha Bella Massa</span>
+									<span class="block text-xs text-on-surface-variant" th:text="'Prato: ' + ${rota.prato}">Lasanha à Bolonhesa</span>
+								</div>
+							</div>
+
+							<div class="flex items-start gap-2">
+								<span class="material-symbols-outlined text-primary text-[20px] mt-0.5">location_on</span>
+								<div>
+									<span class="block font-label-sm text-label-sm uppercase tracking-wider text-outline">Destino (Cliente)</span>
+									<span class="font-body-sm text-body-sm font-semibold text-on-surface" th:text="${rota.cliente}">Ana Souza</span>
+									<span class="block text-xs text-on-surface-variant" th:text="${rota.enderecoDestino}">Av. Epitácio Pessoa, 1000</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Métricas da rota: Distância e Valor -->
+					<div class="flex md:flex-col items-center md:items-end justify-between md:justify-center border-t md:border-t-0 md:border-l border-surface-container-highest pt-4 md:pt-0 md:pl-6 min-w-[150px]">
+						<div class="text-left md:text-right">
+							<span class="block font-label-sm text-label-sm uppercase tracking-wider text-outline">Distância</span>
+							<span class="font-mono text-body-md font-semibold text-on-surface flex items-center gap-1 md:justify-end">
+								<span class="material-symbols-outlined text-[18px] text-outline">route</span>
+								<span th:text="${rota.distanciaKm}">3.4 km</span>
+							</span>
+						</div>
+
+						<div class="text-right mt-0 md:mt-2">
+							<span class="block font-label-sm text-label-sm uppercase tracking-wider text-outline">Remuneração</span>
+							<span class="font-headline-sm text-headline-sm text-secondary font-semibold"
+								th:text="'R$ ' + ${#numbers.formatDecimal(rota.valorCorrida, 1, 'POINT', 2, 'COMMA')}">R$ 15,50</span>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<!-- Aviso sobre a simulação logística -->
+			<div class="p-4 bg-surface-container-low border border-surface-container-highest text-on-surface-variant text-xs flex items-center gap-3">
+				<span class="material-symbols-outlined text-outline text-[20px]">info</span>
+				<span>
+					Área exclusiva para parceiros de entrega cadastrados. Esta visualização ilustra o last-mile de distribuição consolidada, conforme especificado no módulo de logística (RF-LOG-02 e RF-LOG-03).
+				</span>
+			</div>
+		</div>
+	</main>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<div th:replace="~{fragments/layout :: toast}"></div>
+
+</body>
+</html>

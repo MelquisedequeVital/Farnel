@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Criar Conta')}"></head>
+
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col justify-between">
+
+	<header th:replace="~{fragments/layout :: header('cadastro')}"></header>
+
+	<main class="pt-28 pb-16 px-margin flex-grow flex items-center justify-center">
+		<div class="w-full max-w-2xl bg-surface-container-lowest p-8 md:p-12 border border-surface-container-highest shadow-sm">
+			<div class="mb-8">
+				<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary block mb-1">Módulo Consumidor</span>
+				<h1 class="font-headline-lg text-headline-lg text-primary">Crie sua Conta no Farnel</h1>
+				<p class="font-body-sm text-body-sm text-on-surface-variant mt-2">
+					Cadastre seus dados para receber marmitas frescas e artesanais nos dias programados.
+				</p>
+			</div>
+
+			<form th:action="@{/cadastro}" th:object="${form}" method="post" class="space-y-6">
+				<!-- Seção: Dados Pessoais e Acesso -->
+				<div class="border-b border-surface-container-highest pb-6">
+					<h2 class="font-headline-sm text-headline-sm text-primary mb-4">1. Dados Pessoais &amp; Acesso</h2>
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div class="md:col-span-2">
+							<label for="nome" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Nome Completo *</label>
+							<input type="text" id="nome" th:field="*{nome}" required placeholder="Ex.: Maria de Lourdes Silva"
+								class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface transition-colors"
+								th:classappend="${#fields.hasErrors('nome')} ? 'border-error' : ''">
+							<span th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}" class="text-error text-xs block mt-1"></span>
+						</div>
+
+						<div>
+							<label for="email" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">E-mail *</label>
+							<input type="email" id="email" th:field="*{email}" required placeholder="maria@exemplo.com"
+								class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface transition-colors"
+								th:classappend="${#fields.hasErrors('email')} ? 'border-error' : ''">
+							<span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-error text-xs block mt-1"></span>
+						</div>
+
+						<div>
+							<label for="senha" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Senha * (mín. 6 dígitos)</label>
+							<input type="password" id="senha" th:field="*{senha}" required placeholder="••••••••"
+								class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface transition-colors"
+								th:classappend="${#fields.hasErrors('senha')} ? 'border-error' : ''">
+							<span th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}" class="text-error text-xs block mt-1"></span>
+						</div>
+
+						<div class="md:col-span-2">
+							<label for="telefone" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Telefone / WhatsApp *</label>
+							<input type="tel" id="telefone" th:field="*{telefone}" required placeholder="(83) 98888-0000"
+								class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface transition-colors"
+								th:classappend="${#fields.hasErrors('telefone')} ? 'border-error' : ''">
+							<span th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}" class="text-error text-xs block mt-1"></span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Seção: Endereço de Entrega -->
+				<div class="border-b border-surface-container-highest pb-6">
+					<h2 class="font-headline-sm text-headline-sm text-primary mb-4">2. Endereço Principal de Entrega</h2>
+					<div>
+						<label for="endereco" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Endereço Completo com Bairro e Ponto de Referência *</label>
+						<textarea id="endereco" th:field="*{endereco}" rows="2" required placeholder="Ex.: Av. Cabo Branco, 1500, Apto 302, Ed. Jangada - Cabo Branco, João Pessoa/PB"
+							class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface transition-colors"
+							th:classappend="${#fields.hasErrors('endereco')} ? 'border-error' : ''"></textarea>
+						<span th:if="${#fields.hasErrors('endereco')}" th:errors="*{endereco}" class="text-error text-xs block mt-1"></span>
+					</div>
+				</div>
+
+				<!-- Seção: Forma de Pagamento Simulada -->
+				<div class="border-b border-surface-container-highest pb-6">
+					<h2 class="font-headline-sm text-headline-sm text-primary mb-4">3. Forma de Pagamento (Simulação de Cobrança)</h2>
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div class="md:col-span-2">
+							<label for="tipoPagamento" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Método Preferencial</label>
+							<select id="tipoPagamento" th:field="*{tipoPagamento}"
+								class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface">
+								<option value="Cartão de Crédito">Cartão de Crédito (Cobrança Automática Semanal)</option>
+								<option value="Pix">Pix Recorrente</option>
+							</select>
+						</div>
+
+						<div class="md:col-span-2">
+							<label for="titularCartao" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Nome no Cartão / Titular</label>
+							<input type="text" id="titularCartao" th:field="*{titularCartao}" placeholder="Como impresso no cartão"
+								class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface">
+						</div>
+
+						<div>
+							<label for="numeroCartaoMascarado" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Número do Cartão (Simulado)</label>
+							<input type="text" id="numeroCartaoMascarado" th:field="*{numeroCartaoMascarado}" placeholder="Ex.: 4532 1100 8899 4242"
+								class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface">
+						</div>
+
+						<div>
+							<label for="validadeCartao" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface mb-1">Validade</label>
+							<input type="text" id="validadeCartao" th:field="*{validadeCartao}" placeholder="MM/AA (ex.: 08/29)"
+								class="w-full px-4 py-2.5 bg-surface border border-surface-container-highest focus:border-primary focus:outline-none font-body-sm text-body-sm text-on-surface">
+						</div>
+					</div>
+				</div>
+
+				<button type="submit"
+					class="w-full py-3.5 bg-primary text-on-primary font-label-lg text-label-lg uppercase tracking-wider hover:bg-primary-container transition-colors shadow-sm">
+					Finalizar Cadastro de Consumidor
+				</button>
+			</form>
+
+			<div class="mt-8 pt-6 border-t border-surface-container-highest text-center">
+				<p class="font-body-sm text-body-sm text-on-surface-variant">
+					Já possui cadastro?
+					<a th:href="@{/login}" class="font-label-lg text-label-lg uppercase tracking-wider text-secondary hover:underline ml-1">
+						Fazer Login
+					</a>
+				</p>
+			</div>
+		</div>
+	</main>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<div th:replace="~{fragments/layout :: toast}"></div>
+
+</body>
+</html>

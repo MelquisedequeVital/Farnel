@@ -54,12 +54,43 @@ FROM (VALUES
 JOIN restaurante r ON r.cnpj = v.cnpj
 WHERE NOT EXISTS (SELECT 1 FROM prato p WHERE p.nome = v.nome);
 
--- Consumidor padrão para o módulo sem autenticação
-INSERT INTO consumidor (nome, email, endereco) VALUES
-	('Ana Souza', 'ana.souza@farnel.com.br', 'Av. Epitácio Pessoa, 1000')
-ON CONFLICT (email) DO NOTHING;
+-- Usuários padrão do sistema (Senha para todos: 123456)
+-- Hash BCrypt gerado pelo Spring Security: $2a$10$.39kV.D/Et3eHQ/akbckVewJg/wVfP3vwqxj/YqtZwINvuzHSTD2C
+INSERT INTO usuario (nome, email, senha, tipo, restaurante_id)
+SELECT 'Ana Souza', 'ana.souza@farnel.com.br', '$2a$10$.39kV.D/Et3eHQ/akbckVewJg/wVfP3vwqxj/YqtZwINvuzHSTD2C', 'CONSUMIDOR', NULL
+WHERE NOT EXISTS (SELECT 1 FROM usuario WHERE email = 'ana.souza@farnel.com.br');
 
--- Assinaturas ativas de exemplo (recorrência)
+INSERT INTO usuario (nome, email, senha, tipo, restaurante_id)
+SELECT 'Chef Carlos - Bella Massa', 'parceiro@farnel.com.br', '$2a$10$.39kV.D/Et3eHQ/akbckVewJg/wVfP3vwqxj/YqtZwINvuzHSTD2C', 'PARCEIRO', r.id
+FROM restaurante r
+WHERE r.cnpj = '11111111000101'
+  AND NOT EXISTS (SELECT 1 FROM usuario WHERE email = 'parceiro@farnel.com.br');
+
+INSERT INTO usuario (nome, email, senha, tipo, restaurante_id)
+SELECT 'Carlos Entregador', 'entregador@farnel.com.br', '$2a$10$.39kV.D/Et3eHQ/akbckVewJg/wVfP3vwqxj/YqtZwINvuzHSTD2C', 'ENTREGADOR', NULL
+WHERE NOT EXISTS (SELECT 1 FROM usuario WHERE email = 'entregador@farnel.com.br');
+
+-- Consumidor com endereço e forma de pagamento simulada vinculado ao usuário
+INSERT INTO consumidor (nome, email, telefone, endereco, tipo_pagamento, titular_cartao, numero_cartao_mascarado, validade_cartao, usuario_id)
+SELECT 'Ana Souza', 'ana.souza@farnel.com.br', '(83) 98765-4321', 'Av. Epitácio Pessoa, 1000 - Tambauzinho', 'Cartão de Crédito', 'Ana Souza', '•••• •••• •••• 4242', '10/29', u.id
+FROM usuario u
+WHERE u.email = 'ana.souza@farnel.com.br'
+ON CONFLICT (email) DO UPDATE SET
+	usuario_id = EXCLUDED.usuario_id,
+	telefone = EXCLUDED.telefone,
+	tipo_pagamento = EXCLUDED.tipo_pagamento,
+	titular_cartao = EXCLUDED.titular_cartao,
+	numero_cartao_mascarado = EXCLUDED.numero_cartao_mascarado,
+	validade_cartao = EXCLUDED.validade_cartao;
+
+-- Entregador cadastrado e disponível
+INSERT INTO entregador (usuario_id, telefone, veiculo, disponivel)
+SELECT u.id, '(83) 99123-9876', 'Honda CG 160 Fan (Placa QFA-1234)', true
+FROM usuario u
+WHERE u.email = 'entregador@farnel.com.br'
+  AND NOT EXISTS (SELECT 1 FROM entregador e WHERE e.usuario_id = u.id);
+
+-- Assinaturas ativas de exemplo (recorrência da consumidora Ana Souza)
 INSERT INTO assinatura (status, dias_semana, horario_entrega, valor, consumidor_id, prato_id)
 SELECT 'ATIVA', 'Terça-feira', '12:30', p.preco, c.id, p.id
 FROM prato p, consumidor c
