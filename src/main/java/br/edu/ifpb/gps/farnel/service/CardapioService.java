@@ -228,6 +228,20 @@ public class CardapioService {
 		return Optional.empty();
 	}
 
+	/**
+	 * Escolha de marmita no módulo B2B: pratos sem nenhum dos alérgenos marcados,
+	 * opcionalmente filtrados por texto de busca e restaurante.
+	 */
+	public List<Prato> filtrarParaEscolha(Set<Alergeno> sem, String busca, Long restauranteId) {
+		Set<Alergeno> excluir = sem == null ? Set.of() : sem;
+		return buscarPorFiltro(null, busca, restauranteId).stream()
+				.filter(p -> {
+					String alergenos = Textos.normalizar(p.getAlergenos());
+					return excluir.stream().noneMatch(a -> a.getSinonimos().stream().anyMatch(alergenos::contains));
+				})
+				.toList();
+	}
+
 	private boolean livreDe(Prato prato, FiltroCardapio filtro) {
 		String alergenos = Textos.normalizar(prato.getAlergenos());
 		return filtro.getTermos().stream().noneMatch(alergenos::contains);

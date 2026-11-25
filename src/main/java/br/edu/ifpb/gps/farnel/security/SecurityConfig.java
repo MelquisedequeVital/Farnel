@@ -27,6 +27,8 @@ public class SecurityConfig {
 					.anyMatch(a -> a.getAuthority().equals("ROLE_ENTREGADOR"));
 			boolean isEmpresa = authentication.getAuthorities().stream()
 					.anyMatch(a -> a.getAuthority().equals("ROLE_EMPRESA"));
+			boolean isColaborador = authentication.getAuthorities().stream()
+					.anyMatch(a -> a.getAuthority().equals("ROLE_COLABORADOR"));
 
 			if (isParceiro) {
 				response.sendRedirect(request.getContextPath() + "/parceiro");
@@ -34,6 +36,8 @@ public class SecurityConfig {
 				response.sendRedirect(request.getContextPath() + "/entregas");
 			} else if (isEmpresa) {
 				response.sendRedirect(request.getContextPath() + "/empresa");
+			} else if (isColaborador) {
+				response.sendRedirect(request.getContextPath() + "/colaborador");
 			} else {
 				response.sendRedirect(request.getContextPath() + "/catalogo");
 			}
@@ -59,6 +63,7 @@ public class SecurityConfig {
 				.requestMatchers("/parceiro/**").hasRole("PARCEIRO")
 				.requestMatchers("/entregas/**").hasRole("ENTREGADOR")
 				.requestMatchers("/empresa/**").hasRole("EMPRESA")
+				.requestMatchers("/colaborador/**").hasRole("COLABORADOR")
 				.requestMatchers("/minhas-marmitas/**", "/checkout/**", "/carrinho/**", "/perfil/**").hasRole("CONSUMIDOR")
 				.anyRequest().authenticated()
 			)

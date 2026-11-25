@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Minhas Refeições')}"></head>
+<body class="bg-background font-body-md text-on-surface antialiased min-h-screen flex flex-col">
+
+	<header th:replace="~{fragments/layout :: header('refeicoes')}"></header>
+
+	<main class="pt-28 pb-16 px-margin flex-grow">
+
+		<!-- ACESSO ENCERRADO -->
+		<div th:if="${semAcesso}" class="max-w-xl mx-auto py-space-3xl text-center bg-surface-container-low">
+			<span class="material-symbols-outlined text-outline text-[40px]">block</span>
+			<p class="font-headline-sm text-headline-sm text-on-surface font-normal mt-space-sm">Acesso ao benefício encerrado</p>
+			<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Você não faz mais parte do quadro de colaboradores. Procure o RH da sua empresa.</p>
+		</div>
+
+		<th:block th:unless="${semAcesso}">
+			<header class="pb-8 mb-8 border-b border-surface-container-highest flex items-end justify-between gap-8">
+				<div>
+					<span th:text="${empresa.razaoSocial}" class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-semibold">Empresa</span>
+					<h1 class="font-display-md text-display-md text-on-surface tracking-tight font-normal leading-tight mt-1">
+						Olá, <span th:text="${#strings.arraySplit(colaborador.nome, ' ')[0]}">Nome</span>! Escolha sua marmita
+					</h1>
+					<p th:if="${contrato != null}" class="font-body-md text-body-md text-on-surface-variant mt-2">
+						A empresa paga <strong th:text="${contrato.percentualSubsidio} + '%'">0%</strong> de cada refeição
+						(até <strong th:text="'R$ ' + ${#numbers.formatDecimal(contrato.tetoSubsidio, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>).
+						Entrega às <strong th:text="${#temporals.format(contrato.horarioEntrega, 'HH:mm')}">12:00</strong> em <span th:text="${empresa.enderecoEntrega}">endereço</span>.
+					</p>
+				</div>
+
+				<!-- NAVEGAÇÃO POR DATA -->
+				<form th:action="@{/colaborador}" method="get" class="flex items-center gap-2 shrink-0">
+					<a th:if="${data.isAfter(hoje)}" th:href="@{/colaborador(data=${data.minusDays(1)})}" title="Dia anterior"
+						class="w-10 h-10 border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container">
+						<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+					</a>
+					<input type="date" name="data" th:value="${data}" th:min="${hoje}" onchange="this.form.submit()"
+						class="h-10 px-3 bg-surface border border-outline-variant font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary">
+					<a th:href="@{/colaborador(data=${data.plusDays(1)})}" title="Próximo dia"
+						class="w-10 h-10 border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container">
+						<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+					</a>
+				</form>
+			</header>
+
+			<div th:if="${erro != null}" class="mb-6 bg-error-container text-on-error-container px-space-md py-3 font-body-sm text-body-sm" th:text="${erro}">Erro</div>
+
+			<div th:if="${!colaborador.ativo}" class="mb-6 p-4 bg-secondary-container/40 border border-surface-container-highest flex items-center gap-3">
+				<span class="material-symbols-outlined text-secondary text-[18px]">pause_circle</span>
+				<p class="font-body-sm text-body-sm text-on-surface-variant">Seu benefício está <strong>pausado</strong> (férias ou afastamento). Você pode ver o cardápio, mas não escolher marmitas.</p>
+			</div>
+			<div th:if="${contrato == null or contrato.status.name() != 'ATIVO'}" class="mb-6 p-4 bg-secondary-container/40 border border-surface-container-highest flex items-center gap-3">
+				<span class="material-symbols-outlined text-secondary text-[18px]">info</span>
+				<p class="font-body-sm text-body-sm text-on-surface-variant">O contrato de refeições da sua empresa não está ativo no momento.</p>
+			</div>
+
+			<!-- MARMITA ESCOLHIDA NO DIA -->
+			<section th:if="${pedido != null}" class="mb-8 p-6 bg-surface-container-low border border-primary flex items-center gap-6">
+				<div class="w-28 h-20 bg-surface-container-high overflow-hidden shrink-0 flex items-center justify-center">
+					<img th:if="${pedido.prato.imagem != null}" th:src="@{${pedido.prato.imagem}}" th:alt="${pedido.prato.nome}" class="w-full h-full object-cover">
+					<span th:unless="${pedido.prato.imagem != null}" class="material-symbols-outlined text-outline">restaurant</span>
+				</div>
+				<div class="flex-1">
+					<span class="block font-label-sm text-label-sm uppercase tracking-wider text-secondary font-semibold">
+						Sua marmita de <span th:text="${#temporals.format(data, 'dd/MM')}">00/00</span>
+						• <span th:text="${pedido.status.name() == 'ENTREGUE'} ? 'Entregue' : 'Agendada'">Agendada</span>
+						<span th:if="${pedido.recorrente}">• Recorrente</span>
+					</span>
+					<span th:text="${pedido.prato.nome}" class="block font-headline-sm text-headline-sm text-on-surface font-normal">Prato</span>
+					<span class="block font-body-sm text-body-sm text-on-surface-variant">
+						Você paga <strong th:text="'R$ ' + ${#numbers.formatDecimal(pedido.valorColaborador, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+						• Empresa paga <span th:text="'R$ ' + ${#numbers.formatDecimal(pedido.valorEmpresa, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
+					</span>
+				</div>
+				<form th:if="${pedido.status.name() == 'AGENDADO'}" th:action="@{/colaborador/cancelar}" method="post">
+					<input type="hidden" name="data" th:value="${data}">
+					<button type="submit" class="font-label-md text-label-md uppercase tracking-wider text-outline hover:text-error font-semibold">Cancelar</button>
+				</form>
+			</section>
+
+			<!-- MARMITAS RECORRENTES -->
+			<section class="mb-8">
+				<div class="flex items-center gap-2 mb-4 pb-2 border-b border-surface-container-highest">
+					<span class="material-symbols-outlined text-secondary text-[20px]">event_repeat</span>
+					<h2 class="font-label-lg text-label-lg uppercase tracking-wider text-on-surface font-semibold">Minhas Marmitas Recorrentes</h2>
+				</div>
+				<p th:if="${#lists.isEmpty(recorrencias)}" class="font-body-sm text-body-sm text-on-surface-variant">
+					Nenhuma recorrência. Use <strong>"Repetir toda semana"</strong> em um prato abaixo para recebê-lo automaticamente nos dias escolhidos.
+				</p>
+				<div th:unless="${#lists.isEmpty(recorrencias)}" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+					<div th:each="r : ${recorrencias}" class="p-4 bg-surface-container-low border border-surface-container-highest flex flex-col">
+						<span th:text="${r.diaRotulo}" class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-semibold">Segunda-feira</span>
+						<span th:text="${r.prato.nome}" class="font-body-md text-body-md text-on-surface mt-1 flex-1">Prato</span>
+						<span th:text="${r.prato.restaurante.nomeFantasia}" class="font-label-sm text-label-sm text-outline">Restaurante</span>
+						<form th:action="@{/colaborador/recorrencia/remover}" method="post" class="mt-3">
+							<input type="hidden" name="dia" th:value="${r.diaSemana}">
+							<input type="hidden" name="data" th:value="${data}">
+							<button type="submit" class="font-label-sm text-label-sm uppercase tracking-wider text-outline hover:text-error font-semibold">Encerrar</button>
+						</form>
+					</div>
+				</div>
+				<p class="mt-3 font-body-sm text-body-sm text-outline">As marmitas recorrentes entram sozinhas nos lotes dos próximos 7 dias. Cancelar um dia específico não encerra a recorrência.</p>
+			</section>
+
+			<form th:replace="~{fragments/escolha :: filtros(@{/colaborador})}"></form>
+
+			<div th:replace="~{fragments/escolha :: grade(@{/colaborador/escolher}, ${pedido != null} ? 'Trocar por este' : 'Escolher este prato', ${colaborador.ativo and contrato != null and contrato.status.name() == 'ATIVO' and (pedido == null or pedido.status.name() == 'AGENDADO')}, ${colaborador.ativo and contrato != null and contrato.status.name() == 'ATIVO'})}"></div>
+		</th:block>
+	</main>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<div th:replace="~{fragments/layout :: toast}"></div>
+</body>
+</html>

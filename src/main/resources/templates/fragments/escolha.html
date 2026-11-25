@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<!--
+	Fragments da escolha de marmita do módulo B2B, usados pelo portal do colaborador
+	e pela tela da empresa. Esperam no model: data, alergenos, restaurantes, sem, busca,
+	restauranteId e opcoes (lista de OpcaoPrato). "colaboradores"/"colaboradorId" só na tela da empresa.
+-->
+
+<body>
+
+	<!-- Barra de filtros: busca, restaurante e alérgenos a evitar -->
+	<form th:fragment="filtros(acao)" th:action="${acao}" method="get"
+		class="bg-surface-container-low border border-surface-container-highest p-6 mb-8 space-y-5">
+		<input type="hidden" name="data" th:value="${data}">
+
+		<div class="grid grid-cols-12 gap-4 items-end">
+			<div th:if="${colaboradores != null}" class="col-span-12 md:col-span-4">
+				<label for="colaboradorId" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface-variant mb-1 font-semibold">Colaborador</label>
+				<select id="colaboradorId" name="colaboradorId" onchange="this.form.submit()"
+					class="w-full h-11 px-3 bg-surface border border-outline-variant font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary">
+					<option value="">Selecione...</option>
+					<option th:each="c : ${colaboradores}" th:value="${c.id}" th:text="${c.nome}"
+						th:selected="${c.id == colaboradorId}">Colaborador</option>
+				</select>
+			</div>
+			<div th:class="${colaboradores != null} ? 'col-span-12 md:col-span-4' : 'col-span-12 md:col-span-7'">
+				<label for="busca" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface-variant mb-1 font-semibold">Buscar</label>
+				<input type="text" id="busca" name="busca" th:value="${busca}" placeholder="Nome ou ingrediente..."
+					class="w-full h-11 px-3 bg-surface border border-outline-variant font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary">
+			</div>
+			<div th:class="${colaboradores != null} ? 'col-span-12 md:col-span-4' : 'col-span-12 md:col-span-5'">
+				<label for="restaurante" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface-variant mb-1 font-semibold">Restaurante</label>
+				<select id="restaurante" name="restaurante"
+					class="w-full h-11 px-3 bg-surface border border-outline-variant font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary">
+					<option value="">Todos</option>
+					<option th:each="r : ${restaurantes}" th:value="${r.id}" th:text="${r.nomeFantasia}"
+						th:selected="${r.id == restauranteId}">Restaurante</option>
+				</select>
+			</div>
+		</div>
+
+		<div>
+			<span class="block font-label-md text-label-md uppercase tracking-wider text-on-surface-variant mb-2 font-semibold">Sem os alérgenos</span>
+			<div class="flex flex-wrap gap-2">
+				<label th:each="a : ${alergenos}" class="cursor-pointer">
+					<input type="checkbox" name="sem" th:value="${a}" th:checked="${sem.contains(a)}" class="peer sr-only">
+					<span th:text="${a.rotulo}"
+						class="inline-flex items-center h-9 px-3 border border-outline-variant font-label-md text-label-md text-on-surface-variant peer-checked:bg-primary peer-checked:text-on-primary peer-checked:border-primary transition-colors">Alérgeno</span>
+				</label>
+			</div>
+		</div>
+
+		<div class="flex items-center gap-4">
+			<button type="submit" class="h-10 px-5 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md uppercase tracking-wider flex items-center gap-2 transition-colors">
+				<span class="material-symbols-outlined text-[18px]">filter_alt</span>Aplicar filtros
+			</button>
+			<a th:href="${acao} + '?data=' + ${data} + (${colaboradorId != null} ? '&colaboradorId=' + ${colaboradorId} : '')"
+				class="font-label-md text-label-md uppercase tracking-wider text-outline hover:text-on-surface">Limpar</a>
+			<span th:text="${#lists.size(opcoes)} + (${#lists.size(opcoes) == 1} ? ' opção' : ' opções')" class="ml-auto font-body-sm text-body-sm text-outline">0 opções</span>
+		</div>
+	</form>
+
+	<!--
+		Grade de pratos com a divisão do valor; cada card envia a escolha para "acao".
+		Com "recorrencia" = true (portal do colaborador), o card também permite repetir o prato toda semana.
+	-->
+	<div th:fragment="grade(acao, rotulo, habilitado, recorrencia)">
+		<div th:if="${#lists.isEmpty(opcoes)}" class="py-space-3xl text-center bg-surface-container-low">
+			<span class="material-symbols-outlined text-outline text-[40px]">search_off</span>
+			<p class="font-headline-sm text-headline-sm text-on-surface font-normal mt-space-sm">Nenhum prato encontrado</p>
+			<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Ajuste os filtros para ver mais opções.</p>
+		</div>
+
+		<div th:unless="${#lists.isEmpty(opcoes)}" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
+			<article th:each="op : ${opcoes}" class="flex flex-col"
+				th:with="escolhido=${pedido != null and pedido.prato.id == op.prato.id}">
+				<div th:classappend="${escolhido} ? 'ring-2 ring-primary' : ''"
+					class="relative w-full aspect-[4/3] overflow-hidden bg-surface-container-high mb-3 flex items-center justify-center">
+					<img th:if="${op.prato.imagem != null}" th:src="@{${op.prato.imagem}}" th:alt="${op.prato.nome}" loading="lazy" class="w-full h-full object-cover">
+					<span th:unless="${op.prato.imagem != null}" class="material-symbols-outlined text-outline text-[48px]">restaurant</span>
+					<span th:if="${escolhido}" class="absolute top-3 left-3 px-2.5 py-1 bg-primary text-on-primary font-label-sm text-label-sm uppercase tracking-wider font-semibold">Sua escolha</span>
+				</div>
+				<span th:text="${op.prato.restaurante.nomeFantasia}" class="font-label-sm text-label-sm uppercase tracking-wider text-secondary mb-0.5">Restaurante</span>
+				<h3 th:text="${op.prato.nome}" class="font-headline-sm text-headline-sm text-on-surface font-normal leading-snug mb-1">Prato</h3>
+				<span th:text="${#strings.isEmpty(op.prato.alergenos)} ? 'Sem alérgenos declarados' : 'Contém: ' + ${op.prato.alergenos}"
+					class="font-body-sm text-body-sm text-on-surface-variant">Alérgenos</span>
+
+				<div class="mt-3 pt-3 border-t border-surface-container-highest grid grid-cols-3 gap-2 text-center">
+					<div>
+						<span class="block font-label-sm text-label-sm uppercase tracking-wider text-outline">Preço</span>
+						<span th:text="'R$ ' + ${#numbers.formatDecimal(op.divisao.total, 1, 'POINT', 2, 'COMMA')}" class="font-body-sm text-body-sm text-on-surface-variant">R$ 0,00</span>
+					</div>
+					<div>
+						<span class="block font-label-sm text-label-sm uppercase tracking-wider text-outline">Empresa</span>
+						<span th:text="'R$ ' + ${#numbers.formatDecimal(op.divisao.empresa, 1, 'POINT', 2, 'COMMA')}" class="font-body-sm text-body-sm text-primary font-semibold">R$ 0,00</span>
+					</div>
+					<div>
+						<span class="block font-label-sm text-label-sm uppercase tracking-wider text-outline">Colaborador</span>
+						<span th:text="'R$ ' + ${#numbers.formatDecimal(op.divisao.colaborador, 1, 'POINT', 2, 'COMMA')}" class="font-body-sm text-body-sm text-on-surface font-semibold">R$ 0,00</span>
+					</div>
+				</div>
+				<span th:if="${op.divisao.limitadoPeloTeto}" class="mt-1 font-label-sm text-label-sm uppercase tracking-wider text-secondary font-semibold text-center">Acima do teto do subsídio</span>
+
+				<form th:if="${habilitado and !escolhido}" th:action="${acao}" method="post" class="mt-4">
+					<input type="hidden" name="pratoId" th:value="${op.prato.id}">
+					<input type="hidden" name="data" th:value="${data}">
+					<input th:if="${colaboradorId != null}" type="hidden" name="colaboradorId" th:value="${colaboradorId}">
+					<button type="submit" class="w-full h-11 border border-primary text-primary hover:bg-primary hover:text-on-primary font-label-md text-label-md uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+						<span class="material-symbols-outlined text-[18px]">add</span><span th:text="${rotulo}">Escolher</span>
+					</button>
+				</form>
+
+				<details th:if="${recorrencia}" class="mt-2 group">
+					<summary class="list-none cursor-pointer h-10 flex items-center justify-center gap-2 font-label-md text-label-md uppercase tracking-wider text-secondary hover:text-on-surface">
+						<span class="material-symbols-outlined text-[18px]">event_repeat</span>Repetir toda semana
+					</summary>
+					<form th:action="@{/colaborador/recorrencia}" method="post" class="mt-2 p-4 bg-surface-container-low border border-surface-container-highest space-y-3">
+						<input type="hidden" name="pratoId" th:value="${op.prato.id}">
+						<input type="hidden" name="data" th:value="${data}">
+						<span class="block font-label-sm text-label-sm uppercase tracking-wider text-outline">Receber este prato toda:</span>
+						<div class="flex flex-wrap gap-2">
+							<label th:each="d : ${diasSemana}" class="cursor-pointer">
+								<input type="checkbox" name="dias" th:value="${d.dia}" th:checked="${d.dia == diaDaData}" class="peer sr-only">
+								<span th:text="${d.sigla}"
+									class="inline-flex items-center h-9 px-3 border border-outline-variant font-label-md text-label-md text-on-surface-variant peer-checked:bg-secondary peer-checked:text-on-secondary peer-checked:border-secondary transition-colors">Seg</span>
+							</label>
+						</div>
+						<button type="submit" class="w-full h-10 bg-secondary hover:opacity-90 text-on-secondary font-label-md text-label-md uppercase tracking-wider flex items-center justify-center gap-2 transition-opacity">
+							<span class="material-symbols-outlined text-[18px]">check</span>Salvar recorrência
+						</button>
+					</form>
+				</details>
+			</article>
+		</div>
+	</div>
+
+</body>
+</html>

@@ -4,5 +4,6 @@ public enum TipoUsuario {
 	CONSUMIDOR,
 	PARCEIRO,
 	ENTREGADOR,
-	EMPRESA
+	EMPRESA,
+	COLABORADOR
 }

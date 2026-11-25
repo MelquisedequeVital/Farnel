@@ -143,3 +143,52 @@ WHERE e.cnpj = '44444444000104'
 -- Contratos criados antes da subvenção (RF-B2B-02) recebem uma regra padrão
 UPDATE contrato_empresarial SET percentual_subsidio = 70 WHERE percentual_subsidio IS NULL;
 UPDATE contrato_empresarial SET teto_subsidio = 25.00 WHERE teto_subsidio IS NULL;
+
+-- Permite o status REMOVIDO (RF-B2B-04) em bancos criados antes dele
+ALTER TABLE colaborador DROP CONSTRAINT IF EXISTS colaborador_status_check;
+
+-- Colaboradores de exemplo da Tech Nordeste (vinculados ao benefício)
+INSERT INTO colaborador (empresa_id, nome, email, setor, status)
+SELECT e.id, v.nome, v.email, v.setor, v.status
+FROM (VALUES
+	('Bruno Almeida', 'bruno.almeida@technordeste.com.br', 'Desenvolvimento', 'ATIVO'),
+	('Carla Mendes', 'carla.mendes@technordeste.com.br', 'Recursos Humanos', 'ATIVO'),
+	('Diego Ferreira', 'diego.ferreira@technordeste.com.br', 'Suporte', 'ATIVO'),
+	('Fernanda Lima', 'fernanda.lima@technordeste.com.br', 'Financeiro', 'PAUSADO')
+) AS v (nome, email, setor, status)
+JOIN empresa e ON e.cnpj = '44444444000104'
+WHERE NOT EXISTS (SELECT 1 FROM colaborador c WHERE c.email = v.email);
+
+-- Login dos colaboradores de exemplo no portal de escolha de marmitas (senha: 123456)
+INSERT INTO usuario (nome, email, senha, tipo, empresa_id)
+SELECT c.nome, c.email, '$2a$10$.39kV.D/Et3eHQ/akbckVewJg/wVfP3vwqxj/YqtZwINvuzHSTD2C', 'COLABORADOR', c.empresa_id
+FROM colaborador c
+WHERE c.email LIKE '%@technordeste.com.br'
+  AND NOT EXISTS (SELECT 1 FROM usuario u WHERE u.email = c.email);
+
+-- Lote coletivo do dia (RF-B2B-03): marmitas dos colaboradores ativos para a data atual,
+-- com a divisão calculada pela subvenção do contrato (porcentagem limitada ao teto)
+INSERT INTO pedido_coletivo (colaborador_id, prato_id, data_entrega, valor_total, valor_empresa, valor_colaborador, status)
+SELECT c.id, p.id, CURRENT_DATE, p.preco,
+	LEAST(ROUND(p.preco * ct.percentual_subsidio / 100.0, 2), ct.teto_subsidio),
+	p.preco - LEAST(ROUND(p.preco * ct.percentual_subsidio / 100.0, 2), ct.teto_subsidio),
+	'AGENDADO'
+FROM (VALUES
+	('bruno.almeida@technordeste.com.br', 'Frango Grelhado com Arroz e Legumes'),
+	('carla.mendes@technordeste.com.br', 'Bowl Vegano de Legumes'),
+	('diego.ferreira@technordeste.com.br', 'Salmão Grelhado com Arroz e Legumes')
+) AS v (email, prato)
+JOIN colaborador c ON c.email = v.email
+JOIN prato p ON p.nome = v.prato
+JOIN contrato_empresarial ct ON ct.empresa_id = c.empresa_id
+WHERE c.status = 'ATIVO'
+  AND NOT EXISTS (SELECT 1 FROM pedido_coletivo pc WHERE pc.colaborador_id = c.id AND pc.data_entrega = CURRENT_DATE);
+
+-- Marmitas recorrentes de exemplo: Bruno recebe o mesmo prato toda segunda, quarta e sexta.
+-- As marmitas dos próximos 7 dias são geradas pela aplicação ao iniciar e todo dia à meia-noite.
+INSERT INTO recorrencia_colaborador (colaborador_id, prato_id, dia_semana)
+SELECT c.id, p.id, v.dia
+FROM (VALUES ('MONDAY'), ('WEDNESDAY'), ('FRIDAY')) AS v (dia)
+JOIN colaborador c ON c.email = 'bruno.almeida@technordeste.com.br'
+JOIN prato p ON p.nome = 'Frango Grelhado com Arroz e Legumes'
+WHERE NOT EXISTS (SELECT 1 FROM recorrencia_colaborador r WHERE r.colaborador_id = c.id AND r.dia_semana = v.dia);

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pedidos Coletivos')}"></head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+
+	<aside th:replace="~{fragments/empresa :: sidebar('pedidos')}"></aside>
+	<header th:replace="~{fragments/empresa :: topbar('Pedidos Coletivos')}"></header>
+
+	<main class="ml-72 pt-20 min-h-screen">
+		<div class="px-12 py-10">
+
+			<header class="pb-8 mb-8 border-b border-surface-container-highest flex items-end justify-between gap-8">
+				<div>
+					<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-semibold">Entrega Corporativa</span>
+					<h1 class="font-display-md text-display-md text-on-surface tracking-tight font-normal leading-tight mt-1">Painel de Pedidos Coletivos</h1>
+					<p class="font-body-md text-body-md text-on-surface-variant mt-2">Acompanhe o lote consolidado de marmitas entregue de uma só vez no endereço da empresa.</p>
+				</div>
+
+				<!-- NAVEGAÇÃO POR DATA -->
+				<form th:action="@{/empresa/pedidos}" method="get" class="flex items-center gap-2 shrink-0">
+					<a th:href="@{/empresa/pedidos(data=${data.minusDays(1)})}" title="Dia anterior"
+						class="w-10 h-10 border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container">
+						<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+					</a>
+					<input type="date" name="data" th:value="${data}" onchange="this.form.submit()"
+						class="h-10 px-3 bg-surface border border-outline-variant font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary">
+					<a th:href="@{/empresa/pedidos(data=${data.plusDays(1)})}" title="Próximo dia"
+						class="w-10 h-10 border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container">
+						<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+					</a>
+					<a th:unless="${data == hoje}" th:href="@{/empresa/pedidos}"
+						class="h-10 px-4 font-label-md text-label-md uppercase tracking-wider text-primary hover:underline flex items-center">Hoje</a>
+				</form>
+			</header>
+
+			<div th:if="${erro != null}" class="mb-6 bg-error-container text-on-error-container px-space-md py-3 font-body-sm text-body-sm" th:text="${erro}">Erro</div>
+
+			<!-- SEM CONTRATO -->
+			<div th:if="${contrato == null}" class="py-space-3xl text-center bg-surface-container-low">
+				<span class="material-symbols-outlined text-outline text-[40px]">contract</span>
+				<p class="font-headline-sm text-headline-sm text-on-surface font-normal mt-space-sm">Nenhum contrato firmado</p>
+				<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Firme o contrato coletivo para receber marmitas no endereço da empresa.</p>
+				<a th:href="@{/empresa/contrato}" class="inline-flex mt-6 h-11 px-6 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md uppercase tracking-wider items-center transition-colors">Ir para o contrato</a>
+			</div>
+
+			<th:block th:if="${contrato != null}">
+
+				<!-- RESUMO DO LOTE -->
+				<section class="grid grid-cols-4 border-t border-b border-surface-container-highest mb-10">
+					<div class="py-6 pr-6 border-r border-surface-container-highest">
+						<span class="block font-label-sm text-label-sm uppercase tracking-wider text-outline">Lote de</span>
+						<span th:text="${#temporals.format(data, 'dd/MM/yyyy')}" class="block font-headline-md text-headline-md text-on-surface font-normal mt-1">00/00/0000</span>
+						<span th:text="${lote.entregue} ? 'Recebido' : (${lote.totalMarmitas == 0} ? 'Sem pedidos' : 'Agendado')"
+							th:classappend="${lote.entregue} ? 'bg-primary text-on-primary' : 'bg-secondary-container text-on-secondary-container'"
+							class="inline-block mt-2 px-3 py-1 font-label-sm text-label-sm uppercase tracking-wider font-semibold">Agendado</span>
+					</div>
+					<div class="py-6 px-6 border-r border-surface-container-highest">
+						<span class="block font-label-sm text-label-sm uppercase tracking-wider text-outline">Marmitas no lote</span>
+						<span th:text="${lote.totalMarmitas}" class="block font-display-md text-display-md text-primary font-normal leading-tight">0</span>
+					</div>
+					<div class="py-6 px-6 border-r border-surface-container-highest">
+						<span class="block font-label-sm text-label-sm uppercase tracking-wider text-outline">Chegada prevista</span>
+						<span th:text="${#temporals.format(contrato.horarioEntrega, 'HH:mm')}" class="block font-display-md text-display-md text-on-surface font-normal leading-tight">12:00</span>
+						<span th:text="${empresa.enderecoEntrega}" class="block font-body-sm text-body-sm text-on-surface-variant mt-1">Endereço</span>
+					</div>
+					<div class="py-6 pl-6">
+						<span class="block font-label-sm text-label-sm uppercase tracking-wider text-outline">Faturamento do lote</span>
+						<span th:text="'R$ ' + ${#numbers.formatDecimal(lote.totalGeral, 1, 'POINT', 2, 'COMMA')}" class="block font-headline-md text-headline-md text-on-surface font-normal mt-1">R$ 0,00</span>
+						<span class="block font-body-sm text-body-sm text-on-surface-variant mt-1">
+							Empresa <strong th:text="'R$ ' + ${#numbers.formatDecimal(lote.totalEmpresa, 1, 'POINT', 2, 'COMMA')}" class="text-primary">R$ 0,00</strong>
+							• Colaboradores <strong th:text="'R$ ' + ${#numbers.formatDecimal(lote.totalColaboradores, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+						</span>
+					</div>
+				</section>
+
+				<div class="grid grid-cols-12 gap-12">
+
+					<!-- MARMITAS POR COLABORADOR -->
+					<section class="col-span-12 lg:col-span-8">
+						<div class="flex items-center justify-between mb-4 pb-2 border-b border-surface-container-highest">
+							<div class="flex items-center gap-2">
+								<span class="font-label-sm text-label-sm text-secondary font-mono">01.</span>
+								<h2 class="font-label-lg text-label-lg uppercase tracking-wider text-on-surface font-semibold">Marmitas por Colaborador</h2>
+							</div>
+							<form th:if="${lote.totalMarmitas > 0 and !lote.entregue and !data.isAfter(hoje)}" th:action="@{/empresa/pedidos/confirmar}" method="post">
+								<input type="hidden" name="data" th:value="${data}">
+								<button type="submit" class="h-10 px-5 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md uppercase tracking-wider flex items-center gap-2 transition-colors">
+									<span class="material-symbols-outlined text-[18px]">task_alt</span>Confirmar recebimento
+								</button>
+							</form>
+						</div>
+
+						<div th:if="${lote.totalMarmitas == 0}" class="py-space-3xl text-center bg-surface-container-low">
+							<span class="material-symbols-outlined text-outline text-[40px]">inventory_2</span>
+							<p class="font-headline-sm text-headline-sm text-on-surface font-normal mt-space-sm">Nenhuma marmita neste lote</p>
+							<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Adicione as marmitas dos colaboradores ao lado.</p>
+						</div>
+
+						<table th:unless="${lote.totalMarmitas == 0}" class="w-full">
+							<thead>
+								<tr class="text-left font-label-sm text-label-sm uppercase tracking-wider text-outline">
+									<th class="py-3 pr-4 font-medium">Colaborador</th>
+									<th class="py-3 pr-4 font-medium">Prato</th>
+									<th class="py-3 pr-4 font-medium text-right">Empresa</th>
+									<th class="py-3 pr-4 font-medium text-right">Colaborador</th>
+									<th class="py-3 pr-4 font-medium">Status</th>
+									<th class="py-3 font-medium"><span class="sr-only">Ações</span></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="p : ${lote.pedidos}" class="border-t border-surface-container-highest align-middle">
+									<td class="py-3 pr-4">
+										<span th:text="${p.colaborador.nome}" class="block font-body-md text-body-md text-on-surface">Nome</span>
+										<span th:text="${p.colaborador.setor != null} ? ${p.colaborador.setor} : '—'" class="block font-label-sm text-label-sm text-outline">Setor</span>
+									</td>
+									<td class="py-3 pr-4">
+										<span th:text="${p.prato.nome}" class="block font-body-sm text-body-sm text-on-surface">Prato</span>
+										<span class="block font-label-sm text-label-sm text-outline">
+											<span th:text="${p.prato.restaurante.nomeFantasia}">Restaurante</span>
+											<span th:if="${p.recorrente}" class="ml-1 text-secondary font-semibold uppercase tracking-wider">• Recorrente</span>
+										</span>
+									</td>
+									<td th:text="'R$ ' + ${#numbers.formatDecimal(p.valorEmpresa, 1, 'POINT', 2, 'COMMA')}" class="py-3 pr-4 font-body-sm text-body-sm text-primary font-semibold text-right whitespace-nowrap">R$ 0,00</td>
+									<td th:text="'R$ ' + ${#numbers.formatDecimal(p.valorColaborador, 1, 'POINT', 2, 'COMMA')}" class="py-3 pr-4 font-body-sm text-body-sm text-on-surface text-right whitespace-nowrap">R$ 0,00</td>
+									<td class="py-3 pr-4">
+										<span th:text="${p.status.name() == 'ENTREGUE'} ? 'Entregue' : 'Agendado'"
+											th:classappend="${p.status.name() == 'ENTREGUE'} ? 'text-primary' : 'text-secondary'"
+											class="font-label-sm text-label-sm uppercase tracking-wider font-semibold">Agendado</span>
+									</td>
+									<td class="py-3 text-right">
+										<form th:unless="${p.status.name() == 'ENTREGUE'}" th:action="@{/empresa/pedidos/{id}/remover(id=${p.id})}" method="post">
+											<input type="hidden" name="data" th:value="${data}">
+											<button type="submit" class="font-label-md text-label-md uppercase tracking-wider text-outline hover:text-error font-semibold">Remover</button>
+										</form>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</section>
+
+					<!-- LATERAL: CONSOLIDADO + ADICIONAR -->
+					<aside class="col-span-12 lg:col-span-4 space-y-10">
+						<section>
+							<div class="flex items-center gap-2 mb-4 pb-2 border-b border-surface-container-highest">
+								<span class="font-label-sm text-label-sm text-secondary font-mono">02.</span>
+								<h2 class="font-label-lg text-label-lg uppercase tracking-wider text-on-surface font-semibold">Consolidado por Prato</h2>
+							</div>
+							<p th:if="${#lists.isEmpty(lote.itens)}" class="font-body-sm text-body-sm text-outline">Sem itens.</p>
+							<ul class="space-y-3">
+								<li th:each="item : ${lote.itens}" class="flex items-start justify-between gap-4">
+									<div>
+										<span th:text="${item.prato}" class="block font-body-sm text-body-sm text-on-surface">Prato</span>
+										<span th:text="${item.restaurante}" class="block font-label-sm text-label-sm text-outline">Restaurante</span>
+									</div>
+									<span th:text="${item.quantidade} + 'x'" class="font-headline-sm text-headline-sm text-primary font-normal">1x</span>
+								</li>
+							</ul>
+						</section>
+
+						<section th:if="${!data.isBefore(hoje) and contrato.status.name() == 'ATIVO'}" class="bg-surface-container-low border border-surface-container-highest p-6">
+							<div class="flex items-center gap-2 mb-4 pb-2 border-b border-surface-container-highest">
+								<span class="font-label-sm text-label-sm text-secondary font-mono">03.</span>
+								<h2 class="font-label-lg text-label-lg uppercase tracking-wider text-on-surface font-semibold">Adicionar Marmita</h2>
+							</div>
+							<p class="font-body-sm text-body-sm text-on-surface-variant mb-4">Escolha pelo cardápio completo, com filtros de alérgenos, busca e restaurante. Os colaboradores também podem escolher a própria marmita pelo portal deles.</p>
+							<a th:href="@{/empresa/pedidos/adicionar(data=${data})}"
+								class="w-full h-11 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+								<span class="material-symbols-outlined text-[18px]">restaurant_menu</span>Escolher no cardápio
+							</a>
+						</section>
+					</aside>
+				</div>
+			</th:block>
+		</div>
+	</main>
+
+	<div th:replace="~{fragments/layout :: toast}"></div>
+</body>
+</html>
