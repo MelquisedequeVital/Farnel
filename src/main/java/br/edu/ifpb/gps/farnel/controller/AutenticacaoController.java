@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.edu.ifpb.gps.farnel.dto.CadastroConsumidorForm;
+import br.edu.ifpb.gps.farnel.dto.CadastroEmpresaForm;
+import br.edu.ifpb.gps.farnel.service.EmpresaService;
 import br.edu.ifpb.gps.farnel.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class AutenticacaoController {
 
 	private final UsuarioService usuarioService;
+	private final EmpresaService empresaService;
 
 	@GetMapping("/login")
 	public String login(
@@ -63,6 +66,31 @@ public class AutenticacaoController {
 		} catch (IllegalArgumentException e) {
 			bindingResult.rejectValue("email", "email.duplicado", e.getMessage());
 			return "auth/cadastro";
+		}
+	}
+
+	// ---------- Credenciamento da empresa contratante (RF-B2B-01) ----------
+
+	@GetMapping("/cadastro/empresa")
+	public String exibirCadastroEmpresa(Model model) {
+		if (!model.containsAttribute("form")) {
+			model.addAttribute("form", new CadastroEmpresaForm());
+		}
+		return "auth/cadastro-empresa";
+	}
+
+	@PostMapping("/cadastro/empresa")
+	public String cadastrarEmpresa(@Valid @ModelAttribute("form") CadastroEmpresaForm form,
+			BindingResult bindingResult) {
+		if (bindingResult.hasErrors()) {
+			return "auth/cadastro-empresa";
+		}
+		try {
+			empresaService.credenciar(form);
+			return "redirect:/login?cadastrado=true";
+		} catch (IllegalArgumentException e) {
+			bindingResult.reject("credenciamento", e.getMessage());
+			return "auth/cadastro-empresa";
 		}
 	}
 

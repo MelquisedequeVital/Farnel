@@ -63,6 +63,10 @@ FROM (VALUES
 JOIN restaurante r ON r.cnpj = v.cnpj
 WHERE NOT EXISTS (SELECT 1 FROM prato p WHERE p.nome = v.nome);
 
+-- O Hibernate cria um CHECK com os valores do enum TipoUsuario apenas na criação da tabela;
+-- removemos para que novos perfis (ex.: EMPRESA) possam ser gravados em bancos já existentes.
+ALTER TABLE usuario DROP CONSTRAINT IF EXISTS usuario_tipo_check;
+
 -- Usuários padrão do sistema (Senha para todos: 123456)
 -- Hash BCrypt gerado pelo Spring Security: $2a$10$.39kV.D/Et3eHQ/akbckVewJg/wVfP3vwqxj/YqtZwINvuzHSTD2C
 INSERT INTO usuario (nome, email, senha, tipo, restaurante_id)
@@ -117,3 +121,21 @@ SELECT 'ATIVA', 'Sexta-feira', '12:15', p.preco, c.id, p.id
 FROM prato p, consumidor c
 WHERE p.nome = 'Carne de Panela com Batatas' AND c.email = 'ana.souza@farnel.com.br'
   AND NOT EXISTS (SELECT 1 FROM assinatura a WHERE a.prato_id = p.id AND a.consumidor_id = c.id);
+
+-- Módulo B2B: empresa contratante de exemplo, gestor e contrato coletivo (CNPJ fictício)
+INSERT INTO empresa (razao_social, cnpj, responsavel, telefone, endereco_entrega)
+SELECT 'Tech Nordeste Soluções Ltda.', '44444444000104', 'Mariana Costa', '(83) 3222-1000',
+	'Av. Epitácio Pessoa, 2500, 5º andar - Tambauzinho, João Pessoa/PB'
+WHERE NOT EXISTS (SELECT 1 FROM empresa WHERE cnpj = '44444444000104');
+
+INSERT INTO usuario (nome, email, senha, tipo, empresa_id)
+SELECT 'Mariana Costa - Tech Nordeste', 'empresa@farnel.com.br', '$2a$10$.39kV.D/Et3eHQ/akbckVewJg/wVfP3vwqxj/YqtZwINvuzHSTD2C', 'EMPRESA', e.id
+FROM empresa e
+WHERE e.cnpj = '44444444000104'
+  AND NOT EXISTS (SELECT 1 FROM usuario WHERE email = 'empresa@farnel.com.br');
+
+INSERT INTO contrato_empresarial (empresa_id, data_inicio, data_fim, limite_colaboradores, horario_entrega, status)
+SELECT e.id, DATE '2026-01-01', NULL, 30, '12:00', 'ATIVO'
+FROM empresa e
+WHERE e.cnpj = '44444444000104'
+  AND NOT EXISTS (SELECT 1 FROM contrato_empresarial c WHERE c.empresa_id = e.id);
