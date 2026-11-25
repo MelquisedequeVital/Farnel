@@ -1,5 +1,6 @@
 package br.edu.ifpb.gps.farnel.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -13,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.edu.ifpb.gps.farnel.dto.CadastroEmpresaForm;
 import br.edu.ifpb.gps.farnel.dto.ContratoForm;
+import br.edu.ifpb.gps.farnel.dto.SubvencaoForm;
 import br.edu.ifpb.gps.farnel.model.ContratoEmpresarial;
 import br.edu.ifpb.gps.farnel.model.Empresa;
 import br.edu.ifpb.gps.farnel.model.StatusContrato;
@@ -109,6 +111,27 @@ public class EmpresaService {
 		contrato.setLimiteColaboradores(form.getLimiteColaboradores());
 		contrato.setHorarioEntrega(form.getHorarioEntrega());
 		return contratoRepository.save(contrato);
+	}
+
+	// ---------- RF-B2B-02: Subvenção de Refeições ----------
+
+	public SubvencaoForm formDaSubvencao(ContratoEmpresarial contrato) {
+		SubvencaoForm form = new SubvencaoForm();
+		form.setPercentualSubsidio(contrato.getPercentualSubsidio() == null ? 0 : contrato.getPercentualSubsidio());
+		form.setTetoSubsidio(contrato.getTetoSubsidio() == null ? BigDecimal.ZERO : contrato.getTetoSubsidio());
+		return form;
+	}
+
+	@Transactional
+	public void salvarSubvencao(Empresa empresa, SubvencaoForm form) {
+		ContratoEmpresarial contrato = contratoRepository.findByEmpresa(empresa)
+				.orElseThrow(() -> new IllegalArgumentException("Firme o contrato antes de configurar a subvenção."));
+		if (contrato.getStatus() == StatusContrato.ENCERRADO) {
+			throw new IllegalArgumentException("Contrato encerrado não pode ser alterado.");
+		}
+		contrato.setPercentualSubsidio(form.getPercentualSubsidio());
+		contrato.setTetoSubsidio(form.getTetoSubsidio());
+		contratoRepository.save(contrato);
 	}
 
 	@Transactional

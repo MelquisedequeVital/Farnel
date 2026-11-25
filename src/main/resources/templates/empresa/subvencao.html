@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Subvenção de Refeições')}"></head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+
+	<aside th:replace="~{fragments/empresa :: sidebar('subvencao')}"></aside>
+	<header th:replace="~{fragments/empresa :: topbar('Subvenção de Refeições')}"></header>
+
+	<main class="ml-72 pt-20 min-h-screen">
+		<div class="px-12 py-10">
+
+			<header class="pb-8 mb-8 border-b border-surface-container-highest">
+				<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-semibold">Faturamento Compartilhado</span>
+				<h1 class="font-display-md text-display-md text-on-surface tracking-tight font-normal leading-tight mt-1">Subvenção de Refeições</h1>
+				<p class="font-body-md text-body-md text-on-surface-variant mt-2 max-w-3xl">Defina quanto a empresa paga de cada marmita. O restante é cobrado automaticamente do colaborador.</p>
+			</header>
+
+			<!-- SEM CONTRATO -->
+			<div th:if="${contrato == null}" class="py-space-3xl text-center bg-surface-container-low">
+				<span class="material-symbols-outlined text-outline text-[40px]">contract</span>
+				<p class="font-headline-sm text-headline-sm text-on-surface font-normal mt-space-sm">Nenhum contrato firmado</p>
+				<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Firme o contrato coletivo antes de configurar a subvenção.</p>
+				<a th:href="@{/empresa/contrato}" class="inline-flex mt-6 h-11 px-6 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md uppercase tracking-wider items-center transition-colors">Ir para o contrato</a>
+			</div>
+
+			<div th:if="${contrato != null}" class="grid grid-cols-12 gap-12">
+
+				<!-- REGRA DE SUBVENÇÃO -->
+				<section class="col-span-12 lg:col-span-5">
+					<div class="flex items-center gap-2 mb-4 pb-2 border-b border-surface-container-highest">
+						<span class="font-label-sm text-label-sm text-secondary font-mono">01.</span>
+						<h2 class="font-label-lg text-label-lg uppercase tracking-wider text-on-surface font-semibold">Regra de Divisão</h2>
+					</div>
+
+					<form th:action="@{/empresa/subvencao}" th:object="${subvencaoForm}" method="post" class="space-y-6">
+						<div th:if="${#fields.hasGlobalErrors()}" class="bg-error-container text-on-error-container px-space-md py-3 font-body-sm text-body-sm">
+							<p th:each="e : ${#fields.globalErrors()}" th:text="${e}">Erro</p>
+						</div>
+
+						<fieldset th:disabled="${contrato.status.name() == 'ENCERRADO'}" class="space-y-6">
+							<div>
+								<label for="percentualSubsidio" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface-variant mb-1 font-semibold">Subsídio pago pela empresa <span class="text-error">*</span></label>
+								<div th:classappend="${#fields.hasErrors('percentualSubsidio')} ? 'border-error' : 'border-outline-variant'"
+									class="flex items-center h-12 px-4 bg-surface border focus-within:border-primary max-w-xs">
+									<input type="number" th:field="*{percentualSubsidio}" required min="0" max="100" step="1"
+										class="w-full bg-transparent text-on-surface font-headline-sm text-headline-sm focus:outline-none">
+									<span class="text-outline font-body-md text-body-md ml-2">%</span>
+								</div>
+								<span class="font-body-sm text-body-sm text-outline mt-1 block">Porcentagem do valor de cada marmita coberta pela empresa.</span>
+								<p th:if="${#fields.hasErrors('percentualSubsidio')}" th:errors="*{percentualSubsidio}" class="font-body-sm text-body-sm text-error mt-1">Erro</p>
+							</div>
+
+							<div>
+								<label for="tetoSubsidio" class="block font-label-md text-label-md uppercase tracking-wider text-on-surface-variant mb-1 font-semibold">Teto do subsídio por refeição <span class="text-error">*</span></label>
+								<div th:classappend="${#fields.hasErrors('tetoSubsidio')} ? 'border-error' : 'border-outline-variant'"
+									class="flex items-center h-12 px-4 bg-surface border focus-within:border-primary max-w-xs">
+									<span class="text-outline font-body-md text-body-md mr-2">R$</span>
+									<input type="number" th:field="*{tetoSubsidio}" required min="0" step="0.01"
+										class="w-full bg-transparent text-on-surface font-headline-sm text-headline-sm focus:outline-none">
+								</div>
+								<span class="font-body-sm text-body-sm text-outline mt-1 block">Valor máximo pago pela empresa em uma marmita. Acima disso, o colaborador paga o excedente.</span>
+								<p th:if="${#fields.hasErrors('tetoSubsidio')}" th:errors="*{tetoSubsidio}" class="font-body-sm text-body-sm text-error mt-1">Erro</p>
+							</div>
+
+							<div class="pt-6 border-t border-surface-container-highest">
+								<button type="submit" class="h-14 px-8 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg uppercase tracking-widest font-semibold flex items-center gap-3 transition-colors disabled:opacity-50">
+									<span class="material-symbols-outlined text-[20px]">save</span>Salvar regra
+								</button>
+							</div>
+						</fieldset>
+					</form>
+
+					<div class="mt-8 p-4 bg-surface-container-low border border-surface-container-highest flex items-start gap-3">
+						<span class="material-symbols-outlined text-secondary text-[18px] mt-0.5">calculate</span>
+						<div class="space-y-1">
+							<span class="block font-label-md text-label-md uppercase tracking-wider text-secondary font-semibold">Como é calculado</span>
+							<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+								Empresa paga <strong>preço × <span th:text="${contrato.percentualSubsidio}">0</span>%</strong>, limitado a
+								<strong th:text="'R$ ' + ${#numbers.formatDecimal(contrato.tetoSubsidio, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>.
+								O colaborador paga a diferença.
+							</p>
+						</div>
+					</div>
+				</section>
+
+				<!-- SIMULAÇÃO COM O CARDÁPIO -->
+				<section class="col-span-12 lg:col-span-7">
+					<div class="flex items-center justify-between mb-4 pb-2 border-b border-surface-container-highest">
+						<div class="flex items-center gap-2">
+							<span class="font-label-sm text-label-sm text-secondary font-mono">02.</span>
+							<h2 class="font-label-lg text-label-lg uppercase tracking-wider text-on-surface font-semibold">Simulação com o Cardápio</h2>
+						</div>
+						<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Regra salva</span>
+					</div>
+
+					<table class="w-full">
+						<thead>
+							<tr class="text-left font-label-sm text-label-sm uppercase tracking-wider text-outline">
+								<th class="py-3 pr-4 font-medium">Prato</th>
+								<th class="py-3 pr-4 font-medium text-right">Preço</th>
+								<th class="py-3 pr-4 font-medium text-right">Empresa</th>
+								<th class="py-3 font-medium text-right">Colaborador</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="s : ${simulacao}" class="border-t border-surface-container-highest">
+								<td class="py-3 pr-4">
+									<span th:text="${s.prato.nome}" class="font-body-md text-body-md text-on-surface">Prato</span>
+									<span th:if="${s.divisao.limitadoPeloTeto}" class="block font-label-sm text-label-sm uppercase tracking-wider text-secondary font-semibold">Acima do teto</span>
+								</td>
+								<td th:text="'R$ ' + ${#numbers.formatDecimal(s.divisao.total, 1, 'POINT', 2, 'COMMA')}" class="py-3 pr-4 font-body-sm text-body-sm text-on-surface-variant text-right whitespace-nowrap">R$ 0,00</td>
+								<td th:text="'R$ ' + ${#numbers.formatDecimal(s.divisao.empresa, 1, 'POINT', 2, 'COMMA')}" class="py-3 pr-4 font-body-sm text-body-sm text-primary font-semibold text-right whitespace-nowrap">R$ 0,00</td>
+								<td th:text="'R$ ' + ${#numbers.formatDecimal(s.divisao.colaborador, 1, 'POINT', 2, 'COMMA')}" class="py-3 font-body-sm text-body-sm text-on-surface text-right whitespace-nowrap">R$ 0,00</td>
+							</tr>
+						</tbody>
+					</table>
+				</section>
+			</div>
+		</div>
+	</main>
+
+	<div th:replace="~{fragments/layout :: toast}"></div>
+</body>
+</html>

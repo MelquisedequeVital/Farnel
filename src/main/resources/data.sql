@@ -134,8 +134,12 @@ FROM empresa e
 WHERE e.cnpj = '44444444000104'
   AND NOT EXISTS (SELECT 1 FROM usuario WHERE email = 'empresa@farnel.com.br');
 
-INSERT INTO contrato_empresarial (empresa_id, data_inicio, data_fim, limite_colaboradores, horario_entrega, status)
-SELECT e.id, DATE '2026-01-01', NULL, 30, '12:00', 'ATIVO'
+INSERT INTO contrato_empresarial (empresa_id, data_inicio, data_fim, limite_colaboradores, horario_entrega, status, percentual_subsidio, teto_subsidio)
+SELECT e.id, DATE '2026-01-01', NULL, 30, '12:00', 'ATIVO', 70, 25.00
 FROM empresa e
 WHERE e.cnpj = '44444444000104'
   AND NOT EXISTS (SELECT 1 FROM contrato_empresarial c WHERE c.empresa_id = e.id);
+
+-- Contratos criados antes da subvenção (RF-B2B-02) recebem uma regra padrão
+UPDATE contrato_empresarial SET percentual_subsidio = 70 WHERE percentual_subsidio IS NULL;
+UPDATE contrato_empresarial SET teto_subsidio = 25.00 WHERE teto_subsidio IS NULL;

@@ -11,8 +11,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.edu.ifpb.gps.farnel.dto.ContratoForm;
+import br.edu.ifpb.gps.farnel.dto.SubvencaoForm;
+import br.edu.ifpb.gps.farnel.model.ContratoEmpresarial;
+import br.edu.ifpb.gps.farnel.model.ContratoEmpresarial.DivisaoRefeicao;
 import br.edu.ifpb.gps.farnel.model.Empresa;
+import br.edu.ifpb.gps.farnel.model.Prato;
 import br.edu.ifpb.gps.farnel.model.StatusContrato;
+import br.edu.ifpb.gps.farnel.service.CardapioService;
 import br.edu.ifpb.gps.farnel.service.EmpresaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class EmpresaController {
 
 	private final EmpresaService empresaService;
+	private final CardapioService cardapioService;
 
 	@GetMapping
 	public String inicio() {
@@ -64,6 +70,50 @@ public class EmpresaController {
 			redirect.addFlashAttribute("mensagem", e.getMessage());
 		}
 		return "redirect:/empresa/contrato";
+	}
+
+	// ---------- RF-B2B-02: Subvenção de Refeições ----------
+
+	/** Linha da simulação: um prato do catálogo e como seu valor é dividido. */
+	public record SimulacaoPrato(Prato prato, DivisaoRefeicao divisao) {
+	}
+
+	@GetMapping("/subvencao")
+	public String subvencao(Model model) {
+		Empresa empresa = empresaService.empresaLogada();
+		ContratoEmpresarial contrato = empresaService.contrato(empresa);
+		SubvencaoForm form = contrato == null ? new SubvencaoForm() : empresaService.formDaSubvencao(contrato);
+		return exibirSubvencao(empresa, contrato, form, model);
+	}
+
+	@PostMapping("/subvencao")
+	public String salvarSubvencao(@Valid @ModelAttribute("subvencaoForm") SubvencaoForm form, BindingResult erros,
+			Model model, RedirectAttributes redirect) {
+		Empresa empresa = empresaService.empresaLogada();
+		ContratoEmpresarial contrato = empresaService.contrato(empresa);
+		if (erros.hasErrors()) {
+			return exibirSubvencao(empresa, contrato, form, model);
+		}
+		try {
+			empresaService.salvarSubvencao(empresa, form);
+		} catch (IllegalArgumentException e) {
+			erros.reject("subvencao", e.getMessage());
+			return exibirSubvencao(empresa, contrato, form, model);
+		}
+		redirect.addFlashAttribute("mensagem", "Regra de subvenção atualizada.");
+		return "redirect:/empresa/subvencao";
+	}
+
+	private String exibirSubvencao(Empresa empresa, ContratoEmpresarial contrato, SubvencaoForm form, Model model) {
+		model.addAttribute("empresa", empresa);
+		model.addAttribute("contrato", contrato);
+		model.addAttribute("subvencaoForm", form);
+		if (contrato != null) {
+			model.addAttribute("simulacao", cardapioService.listarPratos(null).stream()
+					.map(p -> new SimulacaoPrato(p, contrato.dividir(p.getPreco())))
+					.toList());
+		}
+		return "empresa/subvencao";
 	}
 
 	private String exibirContrato(Empresa empresa, ContratoForm form, Model model) {
